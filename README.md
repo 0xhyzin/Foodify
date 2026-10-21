@@ -86,7 +86,7 @@ docker compose --env-file .env.development up -d --build
 ### تشغيل الفرونت
 
 ~~~bash
-cd /home/hyzin/Projects/Foodify/front
+cd Foodify/front
 npm install
 npm run dev
 ~~~
