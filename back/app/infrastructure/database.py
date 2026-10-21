@@ -2,6 +2,7 @@
 
 from collections.abc import Generator
 from functools import lru_cache
+import ssl
 
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
@@ -24,16 +25,26 @@ def get_engine() -> Engine:
 
 def create_database_engine(database_url: str) -> Engine:
     settings = get_settings()
+    connect_args = {
+        "charset": "utf8mb4", "connect_timeout": 10,
+        "read_timeout": 15, "write_timeout": 15,
+        "init_command": "SET SESSION time_zone='+00:00'",
+    }
+    if settings.database_ssl_ca or settings.database_ssl_ca_pem:
+        ca_pem = settings.database_ssl_ca_pem
+        context = ssl.create_default_context(
+            cafile=settings.database_ssl_ca,
+            cadata=ca_pem.get_secret_value().replace("\\n", "\n") if ca_pem else None,
+        )
+        context.minimum_version = ssl.TLSVersion.TLSv1_2
+        connect_args["ssl"] = context
     return create_engine(
         database_url,
         pool_pre_ping=True,
         pool_recycle=1800,
         pool_size=settings.database_pool_size,
         max_overflow=settings.database_max_overflow,
-        connect_args={
-            "charset": "utf8mb4", "connect_timeout": 10,
-            "init_command": "SET SESSION time_zone='+00:00'",
-        },
+        connect_args=connect_args,
         hide_parameters=True,
         echo=False,
     )

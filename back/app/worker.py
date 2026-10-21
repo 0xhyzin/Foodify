@@ -11,7 +11,7 @@ from sqlalchemy import select
 
 from app.core.config import get_settings
 from app.infrastructure.database import get_engine, get_session_factory
-from app.infrastructure.email import SMTPEmailSender
+from app.infrastructure.email_sender import create_email_sender
 from app.infrastructure.models import EmailOutbox
 from app.shared.time import utcnow
 
@@ -39,7 +39,7 @@ def deliver_next_email() -> bool:
         try:
             payload = json.loads(cipher.decrypt(job.encrypted_payload.encode()))
             if datetime.fromisoformat(payload["expires_at"]) > utcnow():
-                SMTPEmailSender(settings).send_action_email(
+                create_email_sender(settings).send_action_email(
                     payload["recipient"],
                     payload["purpose"],
                     payload["raw_token"],
@@ -63,6 +63,16 @@ def deliver_next_email() -> bool:
         return True
 
 
+def run_worker(stop: threading.Event) -> None:
+    while not stop.is_set():
+        try:
+            if not deliver_next_email():
+                stop.wait(2)
+        except Exception as exc:
+            logger.error("Email worker unavailable type=%s", type(exc).__name__)
+            stop.wait(5)
+
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
     logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -72,13 +82,7 @@ def main() -> None:
     signal.signal(signal.SIGINT, lambda *_: stop.set())
     get_settings()
     try:
-        while not stop.is_set():
-            try:
-                if not deliver_next_email():
-                    stop.wait(2)
-            except Exception as exc:
-                logger.error("Email worker unavailable type=%s", type(exc).__name__)
-                stop.wait(5)
+        run_worker(stop)
     finally:
         get_engine().dispose()
 

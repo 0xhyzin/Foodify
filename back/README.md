@@ -4,7 +4,7 @@
 
 المشروع مقسم حسب الكيان ثم العملية: كل وظيفة مثل تسجيل الدخول لها فولدر مستقل داخل `app/users/` يحتوي `dto.py` و`interfaces.py` و`service.py` و`dependencies.py` و`router.py`. داخله معمارية ثلاث طبقات مبسطة: `router → service → repository`، مع واجهات تفصل الاعتمادات وDependency Injection لكل عملية. الـ repositories وأجزاء الجلسات والبريد المشتركة لها ملفات مستقلة داخل `app/users/shared/`، وصيغة الأخطاء موحدة. قاعدة البيانات MySQL، ومحددات المحاولات مشتركة عبر Redis، والبريد يرسل من worker مستقل عبر transactional outbox مشفر.
 
-إعداد Render للـ API والـ worker وMySQL وربط Vercel موضح بالكامل في [دليل النشر](../docs/DEPLOYMENT.md). ملفات البيئة المحلية الحالية لم تتغير. `python -m scripts.release` ينفذ migrations بحساب مخصص ثم يعمل seed للأدوار بحساب التطبيق المحدود عند النشر.
+إعداد Render المجاني للـ API مع MySQL وValkey على Aiven وبريد Brevo وربط Vercel موضح في [دليل النشر](../docs/DEPLOYMENT.md). ملفات البيئة المحلية الحالية لم تتغير. `EMBEDDED_EMAIL_WORKER=true` يشغل نفس معالج outbox بجانب API لتوفير استضافة منفصلة، و`EMAIL_PROVIDER=brevo` يختار HTTPS بدل SMTP. `python -m scripts.release` ينفذ migrations بحساب مخصص ثم يعمل seed للأدوار بحساب التطبيق المحدود.
 
 ## نقطة البداية والنسخة القديمة
 

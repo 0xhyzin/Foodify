@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     redis_password: SecretStr | None = None
     database_pool_size: int = Field(default=5, ge=1, le=100)
     database_max_overflow: int = Field(default=10, ge=0, le=100)
+    database_ssl_ca: str | None = None
+    database_ssl_ca_pem: SecretStr | None = None
+    database_tls_required: bool = False
     redis_url: str = Field(repr=False)
     jwt_secret: SecretStr
     email_encryption_key: SecretStr
@@ -73,6 +76,9 @@ class Settings(BaseSettings):
     trusted_proxy_ips: list[str] = Field(default_factory=list)
     max_request_bytes: int = Field(default=1_048_576, ge=1024, le=10_485_760)
     smtp_host: str = "localhost"
+    email_provider: Literal["smtp", "brevo"] = "smtp"
+    brevo_api_key: SecretStr | None = None
+    embedded_email_worker: bool = False
     smtp_port: int = Field(default=1025, ge=1, le=65535)
     smtp_username: str | None = None
     smtp_password: SecretStr | None = None
@@ -167,6 +173,10 @@ class Settings(BaseSettings):
             raise ValueError("EMAIL_ENCRYPTION_KEY must be a valid Fernet key.") from exc
         if self.smtp_use_ssl and self.smtp_use_tls:
             raise ValueError("Choose SMTP_USE_SSL or SMTP_USE_TLS, not both.")
+        if self.database_tls_required and not (self.database_ssl_ca or self.database_ssl_ca_pem):
+            raise ValueError("Verified database TLS requires DATABASE_SSL_CA or DATABASE_SSL_CA_PEM.")
+        if self.email_provider == "brevo" and not self.brevo_api_key:
+            raise ValueError("EMAIL_PROVIDER=brevo requires BREVO_API_KEY.")
         if self.frontend_proxy_secret and len(self.frontend_proxy_secret.get_secret_value().encode()) < 32:
             raise ValueError("FRONTEND_PROXY_SECRET must contain at least 32 bytes.")
         smtp_password = self.smtp_password.get_secret_value() if self.smtp_password else ""
@@ -255,14 +265,14 @@ class Settings(BaseSettings):
                 raise ValueError("Production requires a dedicated database user and password.")
             if not redis.password:
                 raise ValueError("Production Redis must require a password.")
-            if not (self.smtp_use_tls or self.smtp_use_ssl):
+            if self.email_provider == "smtp" and not (self.smtp_use_tls or self.smtp_use_ssl):
                 raise ValueError("Production SMTP must use STARTTLS or implicit TLS.")
-            if not self.smtp_username or not self.smtp_password:
+            if self.email_provider == "smtp" and (not self.smtp_username or not self.smtp_password):
                 raise ValueError("Production SMTP requires authentication.")
             credentials = [database.password, redis.password, self.smtp_username, smtp_password]
             credentials.extend(
                 value.get_secret_value()
-                for value in (self.oauth_google_client_secret, self.oauth_facebook_client_secret)
+                for value in (self.oauth_google_client_secret, self.oauth_facebook_client_secret, self.brevo_api_key)
                 if value
             )
             if any(

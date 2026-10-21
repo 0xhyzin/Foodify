@@ -4,7 +4,7 @@
   "installCommand": "npm --prefix front ci",
   "buildCommand": "npm run build",
   "outputDirectory": "front/dist",
-  "functions": { "api/proxy.mjs": { "maxDuration": 30 } },
+  "functions": { "api/proxy.mjs": { "maxDuration": 90 } },
   "rewrites": [
     { "source": "/api/v1/:path*", "destination": "/api/proxy?foodify_path=:path*" },
     { "source": "/verify-email", "destination": "/index.html" },

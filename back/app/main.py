@@ -1,6 +1,7 @@
 """Application composition. Run with python run.py --env development."""
 
 import logging
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, Depends, FastAPI
@@ -11,6 +12,7 @@ from app.core.config import get_settings
 from app.core.middleware import JsonTrustedHostMiddleware, SecurityMiddleware
 from app.dependencies import get_rate_limiter, limit_api_requests
 from app.infrastructure.database import check_database_readiness, get_engine
+from app.infrastructure.embedded_worker import EmbeddedEmailWorker
 from app.shared.dto import ErrorResponse
 from app.shared.errors import AppError, register_exception_handlers
 from app.users.router import auth_router
@@ -19,9 +21,14 @@ from app.users.router import router as users_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    worker = EmbeddedEmailWorker() if get_settings().embedded_email_worker else None
+    if worker:
+        worker.start()
     try:
         yield
     finally:
+        if worker:
+            await asyncio.to_thread(worker.stop)
         get_rate_limiter().close()
         get_engine().dispose()
 

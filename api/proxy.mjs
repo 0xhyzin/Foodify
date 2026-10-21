@@ -51,7 +51,10 @@ export default async function handler(request, response) {
   catch { return fail(response, 503, 'service_unavailable', 'The API deployment is not configured yet.'); }
 
   const incoming = new URL(request.url, 'https://frontend.invalid');
-  const paths = incoming.searchParams.getAll('foodify_path');
+  const rewritePath = request.query?.foodify_path;
+  const paths = rewritePath === undefined
+    ? incoming.searchParams.getAll('foodify_path')
+    : Array.isArray(rewritePath) ? rewritePath : [rewritePath];
   if (paths.length !== 1 || !/^[A-Za-z0-9_/-]+$/.test(paths[0])) {
     return fail(response, 400, 'invalid_request', 'Invalid API path.');
   }
@@ -79,7 +82,8 @@ export default async function handler(request, response) {
   try {
     const body = await readBody(request);
     const upstream = await fetch(upstreamUrl, {
-      method: request.method, headers, body, redirect: 'manual', signal: AbortSignal.timeout(25_000),
+      // A free backend can take time to wake up after inactivity.
+      method: request.method, headers, body, redirect: 'manual', signal: AbortSignal.timeout(75_000),
     });
     response.statusCode = upstream.status;
     for (const name of ['content-type', 'retry-after', 'x-request-id', 'www-authenticate']) {

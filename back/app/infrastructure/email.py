@@ -3,9 +3,9 @@
 import smtplib
 import ssl
 from email.message import EmailMessage
-from urllib.parse import quote
 
 from app.core.config import Settings
+from app.infrastructure.email_content import render_action_email
 from app.shared.errors import AppError
 
 
@@ -14,33 +14,12 @@ class SMTPEmailSender:
         self._settings = settings
 
     def send_action_email(self, recipient: str, purpose: str, raw_token: str) -> None:
-        actions = {
-            "verify_email": (
-                "Verify your Foodify email",
-                "/verify-email",
-                "verify your email address",
-            ),
-            "password_reset": (
-                "Reset your Foodify password",
-                "/reset-password",
-                "reset your password",
-            ),
-        }
-        if purpose not in actions:
-            raise ValueError("Unsupported email action.")
-        subject, path, instruction = actions[purpose]
-        # URL fragments stay out of HTTP request logs. The frontend posts this token
-        # in a JSON body to the matching API action and then clears the fragment.
-        link = f"{self._settings.frontend_url.rstrip('/')}{path}#token={quote(raw_token, safe='')}"
+        content = render_action_email(self._settings.frontend_url, purpose, raw_token)
         message = EmailMessage()
-        message["Subject"] = subject
+        message["Subject"] = content.subject
         message["From"] = self._settings.smtp_from_email
         message["To"] = recipient
-        message.set_content(
-            f"Use this link to {instruction}:\n\n{link}\n\n"
-            "If you did not request this, you can ignore this email.\n"
-            "Do not share this link with anyone."
-        )
+        message.set_content(content.text)
         context = ssl.create_default_context()
         try:
             if self._settings.smtp_use_ssl:

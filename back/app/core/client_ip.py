@@ -9,6 +9,7 @@ from fastapi import Request
 
 from app.core.config import get_settings
 
+PROXY_SIGNATURE_MAX_AGE_SECONDS = 120
 
 def get_client_ip(request: Request) -> str:
     fallback = request.client.host if request.client else "unknown"
@@ -21,7 +22,7 @@ def get_client_ip(request: Request) -> str:
     if len(signature) != 64 or any(char not in "0123456789abcdef" for char in signature):
         return fallback
     try:
-        if abs(time.time() - int(timestamp)) > 30:
+        if abs(time.time() - int(timestamp)) > PROXY_SIGNATURE_MAX_AGE_SECONDS:
             return fallback
         ip_address(proposed_ip)
     except ValueError:

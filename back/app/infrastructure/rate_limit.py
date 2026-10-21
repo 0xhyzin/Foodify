@@ -19,12 +19,17 @@ return {count, redis.call('TTL', KEYS[1])}
 
 class RedisRateLimiter:
     def __init__(self, settings: Settings) -> None:
+        tls_options = (
+            {"ssl_cert_reqs": "required", "ssl_check_hostname": True}
+            if settings.redis_url.startswith("rediss://") else {}
+        )
         self._client = Redis.from_url(
             settings.redis_url,
             socket_connect_timeout=3,
             socket_timeout=3,
             decode_responses=True,
             health_check_interval=30,
+            **tls_options,
         )
         self._environment = settings.app_env
         self._script = self._client.register_script(_LIMIT_SCRIPT)

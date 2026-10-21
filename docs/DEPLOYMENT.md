@@ -1,131 +1,151 @@
-# نشر Foodify
+# نشر Foodify بالخطة المجانية
 
-الكود موجود في ريبو خاصة على حساب صاحب المشروع: [0xhyzin/Foodify](https://github.com/0xhyzin/Foodify). الريبو القديمة لم تتغير.
+## الوضع الحالي
 
-## التقسيم النهائي
+- الكود اترفع في ريبو خاصة: [0xhyzin/Foodify](https://github.com/0xhyzin/Foodify).
+- الواجهة منشورة على [foodify-flax.vercel.app](https://foodify-flax.vercel.app).
+- الباك وقاعدة البيانات لم ينشرا بعد؛ مطلوب إعداد حسابي Aiven وBrevo وبياناتهما. طلبات الحساب ترجع `503` إلى أن يتم ضبط عنوان API الفعلي على Vercel.
+- لم تُنشأ أي خدمة Render مدفوعة، ولم تُضاف أو تُشغل اختبارات في هذا التعديل.
 
-| الجزء | التقنية | الاستضافة |
+## توزيع الخدمات
+
+| الجزء | الاستضافة | الخطة |
 |---|---|---|
-| الواجهة | React + TypeScript + Vite | Vercel |
-| API | Python + FastAPI | Render web service |
-| إرسال البريد | Python transactional outbox worker | Render background worker |
-| قاعدة البيانات | MySQL 8.4 | Render private service + persistent disk |
-| تحديد محاولات الطلبات | Redis 7.4 | Render private service بكلمة مرور |
+| React + TypeScript | Vercel | Hobby |
+| FastAPI + outbox worker | Render web service واحد | Free |
+| MySQL الحقيقي | Aiven for MySQL | Free، مساحة 1 GB |
+| محددات المحاولات | Aiven for Valkey، متوافق مع Redis client الحالي | Free |
+| رسائل التأكيد واسترجاع كلمة المرور | Brevo API عبر HTTPS | Free، حتى 300 رسالة يوميًا بحسب حدود الحساب |
 
-قاعدة البيانات تظل MySQL. لا توجد migrations إلى PostgreSQL ولا اعتماد على Supabase في هذا الإعداد. Supabase ليس استضافة MySQL أو سيرفر FastAPI.
+هذه خطط مجانية للاستخدام المحدود؛ تأكد من اختيار Free عند إنشاء الخدمات، وليس trial لخطة مدفوعة. توجد حدود وحالات خمول موضحة أدناه. قاعدة التطبيق تظل MySQL، ولا يوجد تحويل إلى PostgreSQL أو Supabase.
 
-## حالة النشر
+## ما الذي جهزناه
 
-وجود الملفات والـ build لا يعني أن الباك منشور. إنشاء موارد Render يحتاج الموافقة على تكلفتها وتوفير إعداد SMTP الفعلي. إلى أن يكتمل ذلك، الواجهة تفتح وتعرض الصفحات، وطلبات الحساب ترجع `503 service_unavailable` بشكل واضح بدل بيانات تجريبية.
+`render.yaml` الآن ينشئ web service مجانية فقط. إعداد الأربع خدمات المدفوعة محفوظ كخيار منفصل في `deploy/render.paid.yaml`، وشرحه في [الدليل المدفوع](DEPLOYMENT_PAID.md). لا تستخدمه للخطة المجانية.
 
-لا توجد اختبارات جديدة في هذا التغيير ولا pipeline يشغل الاختبارات. خطوات التحقق هي build للفرونت وPython syntax compilation فقط.
-
-## ما الذي تغير
-
-- `vercel.json`: بناء الواجهة من `front/`، وإتاحة المسارات الفعلية لروابط تأكيد البريد وإعادة كلمة المرور وOAuth.
-- `api/proxy.mjs`: طبقة نقل صغيرة من Vercel إلى عنوان FastAPI المحدد في إعدادات الخادم. لا تحتوي منطق تسجيل أو قاعدة بيانات.
-- `front/src/app/config.ts`: وضع الإنتاج الافتراضي `api`، والعنوان `/api/v1`. وضع التصميم `demo` يظل اختيارًا صريحًا.
-- `front/vite.config.ts`: CSP يسمح بطلبات نفس الأصل عند استخدام `/api/v1`.
-- `render.yaml`: أربع خدمات مستقلة؛ لا ينشر الواجهة على Render.
-- `deploy/mysql/`: MySQL بقرص دائم، وحساب تطبيق محدود وlogin آخر للمigrations.
-- `deploy/redis/`: Redis خاص بكلمة مرور، ولا يضع كلمة المرور في command-line arguments.
-- `back/app/core/config.py`: يبني روابط MySQL وRedis بأمان من مكونات الخدمات، مع URL encoding لكلمات المرور. روابط `DATABASE_URL` و`REDIS_URL` الصريحة ما زالت تعمل وتتقدم على المكونات.
-- `back/migrations/env.py`: يستخدم `MIGRATION_DATABASE_URL` عند وجوده بدل حساب التطبيق.
-- `back/scripts/release.py`: ينتظر اتصال MySQL، يطبق Alembic، ثم ينشئ تعريفات الأدوار والصلاحيات وأنواع التوكنات. لا يحذف حسابات ولا ينشئ حساب أدمن افتراضيًا.
-- `back/app/core/client_ip.py`: يقبل IP المستخدم من proxy الواجهة فقط عند وجود توقيع HMAC صحيح وحديث؛ غير ذلك يستخدم عنوان الاتصال المعتاد.
-
-## نشر الواجهة على Vercel
-
-اربط مشروع Vercel بالريبو الجديدة، واجعل Root Directory هو جذر الريبو `.`. الإعدادات موجودة في `vercel.json`:
+التشغيل المجاني يمر كالتالي:
 
 ```text
-Framework: Vite
-Install: npm --prefix front ci
-Build: npm run build
-Output: front/dist
+Vercel React
+  → /api/v1 على نفس أصل الواجهة
+  → api/proxy.mjs: نقل HTTP فقط
+  → FastAPI على Render
+  → MySQL على Aiven باتصال TLS موثق
+  → Valkey على Aiven باتصال rediss
+  → outbox مشفر في MySQL
+  → worker داخل نفس عملية خدمة الويب
+  → Brevo HTTPS API
 ```
 
-متغيرات الخادم المطلوبة بعد نشر FastAPI:
+منطق التسجيل وJWT وOAuth والعناوين ما زال في FastAPI. الـ proxy على Vercel لا يتصل بقاعدة البيانات ولا يخزن جلسات؛ ينقل `Set-Cookie` حتى تبقى refresh cookie على نفس أصل الواجهة.
+
+عامل البريد يستخدم نفس `deliver_next_email` وlocking وretry وexpiry الموجودين بالفعل. فصلناه عن طريقة التشغيل: يمكن تشغيله مستقلًا بالأمر القديم، أو داخل lifecycle التطبيق عند `EMBEDDED_EMAIL_WORKER=true`. توقف السيرفر يترك الطلبات غير المنتهية في MySQL، لتُستكمل بعد تشغيله.
+
+إرسال البريد يمر من interface `EmailSender`. الـ composition root في `email_sender.py` يختار SMTP أو Brevo؛ نص الرسالة والرابط يأتيان من `email_content.py` لكلا المزودين. التشغيل المحلي يظل SMTP افتراضيًا، ولا يتغير Mailpit أو ملف `.env.development`.
+
+## تجهيز حسابات الخدمات
+
+أنشئ حسابًا مجانيًا في [Aiven](https://console.aiven.io/signup) وحسابًا في [Brevo](https://app.brevo.com/account/register). في Brevo أكمل تفعيل transactional email وإثبات عنوان المرسل المطلوب.
+
+الملف المحلي `.env.deploy.local` مستبعد من Git ومهيأ بصلاحيات ملف خاصة. ضع البيانات فيه محليًا فقط، دون إرسالها في المحادثة:
+
+| المفتاح | المطلوب |
+|---|---|
+| `AIVEN_API_TOKEN` | Authentication token لإدارة الخدمات في حسابك، يستخدم أثناء الإعداد فقط |
+| `AIVEN_PROJECT` | اسم مشروع Aiven، ويمكن تركه فارغًا إلى أن نقرأ المشاريع المتاحة |
+| `AIVEN_MYSQL_SERVICE` | الاسم المقترح `foodify-mysql` |
+| `AIVEN_VALKEY_SERVICE` | الاسم المقترح `foodify-valkey` |
+| `BREVO_API_KEY` | API key من قسم SMTP & API في Brevo، وليس SMTP password |
+| `SMTP_FROM_EMAIL` | عنوان المرسل الذي فعلته في Brevo |
+
+المثال الخالي من الأسرار في [`.env.deploy.local.example`](../.env.deploy.local.example) يوضح الأسماء. توكن إدارة Aiven لا يدخل في build الواجهة أو إعداد تشغيل FastAPI؛ بعد الإعداد يمكن إلغاؤه. مفتاح Brevo يكون على الباك فقط.
+
+## إنشاء MySQL وValkey على Aiven
+
+1. أنشئ خدمتي MySQL وValkey باستخدام خطة Free، وليس PostgreSQL. Aiven يسمح بخدمة واحدة من كل نوع في المؤسسة حسب حدود الخطة.
+2. من MySQL احصل على host وport واسم القاعدة وشهادة CA العامة. لا تفترض أن المنفذ `3306`؛ استخدم القيمة المعروضة في الحساب.
+3. جهز حسابًا منفصلًا للتطبيق بصلاحيات DML على قاعدة التطبيق: `SELECT/INSERT/UPDATE/DELETE`. حساب التهيئة يستخدم migrations، بينما حساب التطبيق يستخدم الطلبات اليومية. الحساب الافتراضي `avnadmin` يحفظ لخطوات التهيئة.
+4. عنوان MySQL داخل SQLAlchemy يبدأ بـ `mysql+pymysql://`. يجب URL-encode لكلمة المرور عند وضعها في connection URL.
+5. اتصال MySQL في التطبيق يستخدم `DATABASE_SSL_CA_PEM` أو ملف `DATABASE_SSL_CA` مع التحقق من شهادة الخادم واسم المضيف. لا تستخدم `ssl_verify=false`.
+6. عنوان Valkey يكون `rediss://...` مع اسم المستخدم وكلمة المرور والمنفذ من Aiven. Redis adapter الحالي يتصل به، ويتحقق من الشهادة واسم المضيف.
+
+## إعداد FastAPI على Render
+
+اربط الريبو `0xhyzin/Foodify` وفرع `main` بخدمة Docker مجانية، أو استخدم `render.yaml` كـ Blueprint. الملفات داخل `back/`، وDockerfile هو `back/Dockerfile` وbuild context هو `back/`.
+
+```text
+Plan: Free
+Docker command: python -m scripts.hosted_start
+Health check: /health/ready
+Workers: 1
+```
+
+`scripts.hosted_start` يجهز إصدار قاعدة البيانات بـ Alembic وseed للأدوار، ثم يستبدل نفسه بـ Uvicorn. لا يفرغ القاعدة ولا ينشئ مستخدمين تجريبيين. بعد اكتمال التهيئة، يمكن إزالة `MIGRATION_DATABASE_URL` من runtime حتى يحتاج أي تغيير schema لاحق إضافة صلاحية التهيئة مجددًا.
+
+متغيرات التشغيل موضحة في [`.env.free.example`](../back/.env.free.example). أهمها:
 
 | المتغير | القيمة |
 |---|---|
-| `FOODIFY_API_ORIGIN` | عنوان Render الفعلي، مثل `https://foodify-api-xxxx.onrender.com`، بدون `/api/v1` |
-| `FRONTEND_PROXY_SECRET` | نفس السر العشوائي الموجود على خدمة FastAPI |
+| `APP_ENV` | `production` |
+| `DEBUG`, `DOCS_ENABLED` | `false` |
+| `DATABASE_URL` | رابط MySQL لحساب التطبيق المحدود |
+| `MIGRATION_DATABASE_URL` | رابط حساب التهيئة، مطلوب عندما يوجد schema جديد |
+| `DATABASE_TLS_REQUIRED` | `true` |
+| `DATABASE_SSL_CA_PEM` | شهادة CA العامة من Aiven؛ يقبل `\n` داخل النص |
+| `REDIS_URL` | رابط Valkey بصيغة `rediss://` |
+| `EMAIL_PROVIDER` | `brevo` |
+| `BREVO_API_KEY` | مفتاح Brevo الفعلي |
+| `SMTP_FROM_EMAIL` | المرسل المعتمد في Brevo؛ الاسم محفوظ للتوافق مع SMTP |
+| `EMBEDDED_EMAIL_WORKER` | `true` |
+| `FRONTEND_URL` | `https://foodify-flax.vercel.app` |
+| `CORS_ORIGINS` | `["https://foodify-flax.vercel.app"]` |
+| `PUBLIC_BASE_URL` | أصل API HTTPS على Render |
+| `TRUSTED_HOSTS` | قائمة JSON فيها hostname الخاص بـ API |
+| `FRONTEND_PROXY_SECRET` | سر عشوائي جديد، نفس القيمة على Vercel |
 
-يمكن ترك متغيرات Vite غير مضبوطة، فالإنتاج يستخدم `/api/v1` افتراضيًا. إذا كانت موجودة من نشر سابق، اجعل `VITE_DATA_SOURCE=api` و`VITE_API_BASE_URL=/api/v1`. لا تضع بيانات MySQL أو SMTP أو OAuth في أي متغير يبدأ بـ `VITE_`.
+`JWT_SECRET` ومفتاح Fernet باسم `EMAIL_ENCRYPTION_KEY` يجب توليدهما للإنتاج، وعدم استخدام أسرار التطوير. Render Blueprint يولد قيمًا عشوائية لهما. يعمل البريد عبر HTTPS على المنفذ `443`، لأن الخطة المجانية تقيد منافذ SMTP الشائعة.
 
-الـ proxy لا يقبل upstream من المستخدم؛ العنوان من إعداد الخادم فقط، ويتطلب HTTPS. ينقل فقط headers اللازمة، ولا يتبع redirects، ويقيد حجم الطلب ومهلة الاتصال. ينقل `Set-Cookie` حتى تبقى refresh cookie على أصل الواجهة؛ هذا يتجنب الاعتماد على third-party cookies بين Vercel وRender.
+## إكمال الربط على Vercel
 
-## نشر الباك وMySQL على Render
+إعداد الجذر `vercel.json` يبني `front/` ويفتح `/verify-email` و`/reset-password` و`/oauth/callback`، ثم React يعالج fragment الخاص بالتوكن.
 
-1. افتح **New → Blueprint**، واربط الريبو `0xhyzin/Foodify` وفرع `main`.
-2. يستخدم Blueprint ملف `render.yaml`. راجع أسعار **أربع خدمات Starter** والقرص **10 GB** قبل الموافقة. هذه الموارد ليست خطة مجانية.
-3. اختر نفس workspace/region للخدمات؛ الملف يستخدم Frankfurt. MySQL وRedis من نوع private service ولا يحصلان على endpoint عام.
-4. أدخل القيم المطلوبة أدناه. Render ينشئ كلمات مرور قواعد البيانات وJWT ومفتاح تشفير outbox عشوائيًا، ويشارك فقط القيم المطلوبة بين الخدمات.
-5. عند أول نشر، تهيئة MySQL تنشئ حساب التطبيق `foodify` بصلاحيات `SELECT/INSERT/UPDATE/DELETE`، وحساب `foodify_migrator` بصلاحيات schema على قاعدة `foodify` فقط. كلمة root تبقى داخل خدمة MySQL.
-6. pre-deploy الخاص بخدمة API ينفذ `python -m scripts.release`. العامل لا يحصل على كلمة مرور migrator، ولا يشغل migrations.
-7. اضبط عنوان API النهائي في `PUBLIC_BASE_URL` و`TRUSTED_HOSTS`، ثم أعد نشر API والعامل إذا تغير العنوان. اضبط `FOODIFY_API_ORIGIN` في Vercel وأعد نشر الواجهة.
-
-لا تضف `DATABASE_URL` أو `REDIS_URL` من إعداد جهازك إلى Blueprint؛ الملف يبنيهما من عناوين الخدمات الخاصة وكلمات المرور المشتركة. حساب MySQL واسم القاعدة في هذا القالب هما `foodify`. برامج تهيئة MySQL تعمل مرة واحدة عند إنشاء قرص فارغ، ولا تعيد تعيين كلمات المرور عند إعادة تشغيل قرص موجود.
-
-### القيم التي تحتاج بياناتك
-
-| متغير Render | القيمة المطلوبة |
-|---|---|
-| `PUBLIC_BASE_URL` | عنوان FastAPI المنشور HTTPS |
-| `FRONTEND_URL` | أصل الواجهة المنشور HTTPS بدون `/#/login` |
-| `CORS_ORIGINS` | JSON مثل `["https://YOUR_FRONTEND.vercel.app"]` |
-| `TRUSTED_HOSTS` | JSON فيه hostname الخاص بـ API فقط، بدون scheme أو path |
-| `FRONTEND_PROXY_SECRET` | سر جديد بطول 32 bytes على الأقل، نفس القيمة على Vercel |
-| `SMTP_HOST` | خادم SMTP الحقيقي |
-| `SMTP_USERNAME` | مستخدم SMTP |
-| `SMTP_PASSWORD` | كلمة مرور SMTP أو App Password المناسبة للمزود |
-| `SMTP_FROM_EMAIL` | بريد إرسال فعلي تسمح به خدمة SMTP |
-
-القالب يستخدم STARTTLS على `587`. لو المزود يحتاج SSL على `465`، عدّل API والعامل معًا إلى `SMTP_PORT=465` و`SMTP_USE_SSL=true` و`SMTP_USE_TLS=false`.
-
-لا تستخدم Mailpit أو localhost في الإنتاج. خدمة البريد تحتاج تشغيلًا مستمرًا؛ نجاح register أو forgot-password بـ `202` يعني أن الرسالة دخلت outbox، وليس أنها وصلت بالفعل. خطة Render المجانية تقيد منافذ SMTP المعتادة، لذلك القالب يستخدم خدمات مدفوعة.
-
-يمكن توليد سر الـ proxy محليًا، ثم إدخاله في لوحتي الخدمات بدون وضعه في Git:
-
-```bash
-python -c 'import secrets; print(secrets.token_urlsafe(48))'
-```
-
-### Google وFacebook
-
-لكل مزود تضيف القيم الثلاث معًا على خدمة API:
+بعد معرفة عنوان API المنشور، اضبط متغيرين على Vercel:
 
 ```text
-OAUTH_GOOGLE_CLIENT_ID
-OAUTH_GOOGLE_CLIENT_SECRET
-OAUTH_GOOGLE_REDIRECT_URI=https://YOUR_API.onrender.com/api/v1/auth/oauth/google/callback
-
-OAUTH_FACEBOOK_CLIENT_ID
-OAUTH_FACEBOOK_CLIENT_SECRET
-OAUTH_FACEBOOK_REDIRECT_URI=https://YOUR_API.onrender.com/api/v1/auth/oauth/facebook/callback
+FOODIFY_API_ORIGIN=https://YOUR_API.onrender.com
+FRONTEND_PROXY_SECRET=نفس_السر_العشوائي_على_Render
 ```
 
-سجل عنوان callback نفسه حرفيًا في Google Cloud أو Meta. أسرار OAuth لا تدخل في build الواجهة. لا يحتاج عامل البريد مفاتيح Google أو Facebook.
+لا تضف `/api/v1` إلى `FOODIFY_API_ORIGIN`، ولا تضع هذه الأسرار في متغيرات `VITE_`. الواجهة تستخدم `VITE_DATA_SOURCE=api` و`VITE_API_BASE_URL=/api/v1` افتراضيًا في build الإنتاج. أعد نشر الواجهة بعد ضبط إعدادات الخادم.
 
-روابط الإيميل تستخدم `FRONTEND_URL/verify-email#token=...` و`FRONTEND_URL/reset-password#token=...`. قيمة `FRONTEND_URL` مشتركة مع العامل، لذلك عند تغييرها تأكد من نشر العامل أيضًا.
+## Google وFacebook
 
-## البيانات وإعادة النشر
+مفاتيح OAuth الحالية لا تصبح جاهزة للإنتاج بمجرد رفع الكود. أضف قيم `CLIENT_ID` و`CLIENT_SECRET` و`REDIRECT_URI` لكل مزود على الباك، وسجل callback HTTPS نفسه حرفيًا في Google Cloud وMeta:
 
-- التشغيل المحلي وملفات `.env.development` يظلان كما هما؛ رفع الكود لا ينقل حسابات MySQL المحلية تلقائيًا.
-- قرص MySQL على `/var/lib/mysql` يحتفظ بالبيانات عند إعادة نشر الصورة. لا تحذف القرص لإعادة نشر التطبيق.
-- خذ نسخًا منطقية باستخدام `mysqldump` قبل migrations مهمة؛ snapshots للقرص ليست بديلًا عن backup متسق لقاعدة البيانات.
-- auto-deploy مفعّل لـ API والعامل، ومغلق لخدمات MySQL وRedis حتى لا يعاد تشغيلهما عند كل تعديل للواجهة.
-- endpoint `/health/ready` يفحص اكتمال migrations واتصال Redis، و`/health/live` يفحص وصول التطبيق فقط.
+```text
+https://YOUR_API.onrender.com/api/v1/auth/oauth/google/callback
+https://YOUR_API.onrender.com/api/v1/auth/oauth/facebook/callback
+```
 
-## الملفات الحساسة
+روابط التأكيد واسترجاع الباسورد تستخدم أصل الواجهة المنشور. تغيير إعداد `FRONTEND_URL` يطبق على عامل البريد المدمج مع إعادة تشغيل API نفسه.
 
-ملفات `.env` الحقيقية و`.venv` و`node_modules` وbuild outputs مستبعدة من Git. Vercel يستبعد مجلد `back/` و`deploy/` من رفع CLI. لا ترفع dumps لقاعدة البيانات أو روابط reset فعلية أو ملفات Postman تحتوي توكنات مستخدمين.
+## حدود المجاني
 
-## مراجع الاستضافة
+- Render Free ينام بعد الخمول. أول طلب قد ينتظر بدء الخدمة، والـ proxy يسمح بمهلة أطول لاستيعاب ذلك. لا يوجد ضمان أن كل cold start سينتهي قبل مهلة الطلب.
+- عامل البريد يعمل عندما تكون خدمة الويب مستيقظة. رسائل retry المنتظرة تستكمل عند عودة السيرفر، وقد تنتهي صلاحية رابط قديم؛ يمكن طلب رسالة جديدة.
+- MySQL المجاني على Aiven محدود بـ 1 GB ومسار single node. قد توقف Aiven الخدمات غير النشطة بعد تنبيه؛ هذا ليس ضمان توافر لإنتاج كبير.
+- Brevo يطبق الحد اليومي وتفعيل المرسل وقواعد الحساب. القالب يجهز التكامل ولا يتجاوز هذه الحدود.
+- الميزانية صفر ضمن الخطط المجانية وحدودها. لا تتم ترقية أي خطة تلقائيًا من الكود.
 
-- [Render: MySQL](https://render.com/docs/deploy-mysql)
-- [Render: Blueprint specification](https://render.com/docs/blueprint-spec)
-- [Render: SMTP limits on free services](https://render.com/docs/free)
-- [Vercel: Vite](https://vercel.com/docs/frameworks/frontend/vite)
-- [Supabase: PostgreSQL database](https://supabase.com/docs/guides/database/overview)
+## التحقق المنفذ
+
+Frontend production build وTypeScript compilation، وPython syntax compilation، وتوليد Alembic SQL بدون اتصال، وفحص JSON/YAML وملفات shell، وفحص استبعاد الأسرار من Git. لا توجد اختبارات auth أو إرسال رسائل فعلية أو حسابات تجريبية. التحقق من حسابات Aiven وBrevo والـ API المنشور يظل مطلوبًا بعد توفر بيانات الخدمات.
+
+## مراجع
+
+- [Aiven MySQL Free](https://aiven.io/docs/products/mysql/concepts/mysql-free-tier)
+- [Aiven Valkey Free](https://aiven.io/docs/products/valkey/concepts/valkey-free-tier)
+- [Aiven TLS certificates](https://aiven.io/docs/platform/concepts/tls-ssl-certificates)
+- [Render Free](https://render.com/docs/free)
+- [Brevo Free plan](https://help.brevo.com/hc/en-us/articles/208589409-About-Brevo-s-pricing-plans)
+- [Brevo transactional email API](https://developers.brevo.com/docs/send-a-transactional-email)
