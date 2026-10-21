@@ -1,0 +1,1150 @@
+{
+  "info": {
+    "name": "Foodify API — Customer Authentication v1",
+    "description": "Manual Postman collection for the FastAPI customer phase. Import one of the development/test/production environment templates, fill its values locally, then send requests one at a time. No tests, assertions, pre-request or post-response scripts are included. Tokens and IDs must be copied manually. API prefix: /api/v1; health routes have no prefix. Read README.md and docs/FUNCTIONS.md for flow and security behavior. Production URL is a placeholder and no production requests have been sent. OAuth callback request is reference-only and is normally executed by the provider in a browser.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "00 Health",
+      "item": [
+        {
+          "name": "Liveness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/health/live",
+            "description": "Process health only; no MySQL, Redis, SMTP or provider availability guarantee.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [
+            {
+              "name": "200 example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_url}}/health/live",
+                "description": "Process health only; no MySQL, Redis, SMTP or provider availability guarantee.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"alive\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Readiness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/health/ready",
+            "description": "Checks MySQL connectivity, migration version table and Redis; unavailable dependencies return 503. Does not check SMTP delivery.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [
+            {
+              "name": "200 example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_url}}/health/ready",
+                "description": "Checks MySQL connectivity, migration version table and Redis; unavailable dependencies return 503. Does not check SMTP delivery.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"ready\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 Email and sessions",
+      "item": [
+        {
+          "name": "01 Register customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/register",
+            "description": "Public registration only grants customer. Set name/email/password in the selected environment first. Password must contain 15–128 characters. Generic 202 also covers an existing email. Next: read Mailpit and manually fill email_verification_token.\n\nExpected success: HTTP 202. All errors use the documented error envelope.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{name}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "202 example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{base_url}}/api/v1/auth/register",
+                "description": "Public registration only grants customer. Set name/email/password in the selected environment first. Password must contain 15–128 characters. Generic 202 also covers an existing email. Next: read Mailpit and manually fill email_verification_token.\n\nExpected success: HTTP 202. All errors use the documented error envelope.",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{name}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Accepted",
+              "code": 202,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"If the account is eligible, an email with the next steps will be sent.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "02 Resend email verification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/resend-verification",
+            "description": "Generic response whether the account exists or is eligible. A new eligible action invalidates the previous verification links.\n\nExpected success: HTTP 202. All errors use the documented error envelope.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "202 example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{base_url}}/api/v1/auth/resend-verification",
+                "description": "Generic response whether the account exists or is eligible. A new eligible action invalidates the previous verification links.\n\nExpected success: HTTP 202. All errors use the documented error envelope.",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Accepted",
+              "code": 202,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"If the account is eligible, an email with the next steps will be sent.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "03 Verify email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/verify-email",
+            "description": "Copy only the token value from the email link fragment into email_verification_token. The link expires and is single-use. The API accepts JSON POST, not a browser GET link.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{email_verification_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{base_url}}/api/v1/auth/verify-email",
+                "description": "Copy only the token value from the email link fragment into email_verification_token. The link expires and is single-use. The API accepts JSON POST, not a browser GET link.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"{{email_verification_token}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"Email confirmed. You can now sign in.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "04 Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/login",
+            "description": "Email must already be verified. Manually copy access_token and refresh_token into the selected environment. No token-capture scripts run.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{base_url}}/api/v1/auth/login",
+                "description": "Email must already be verified. Manually copy access_token and refresh_token into the selected environment. No token-capture scripts run.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"access_token\": \"<copy the real access_token from the response>\",\n  \"refresh_token\": \"<copy the real refresh_token from the response>\",\n  \"token_type\": \"bearer\",\n  \"expires_in\": 900,\n  \"user\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"name\": \"Foodify Customer\",\n    \"email\": \"customer@example.com\",\n    \"phone\": null,\n    \"email_verified\": true,\n    \"roles\": [\n      \"customer\"\n    ],\n    \"permissions\": [\n      \"addresses:manage\",\n      \"orders:create\",\n      \"orders:read_own\",\n      \"profile:read\",\n      \"profile:write\"\n    ],\n    \"profile_complete\": false,\n    \"default_address_id\": null,\n    \"created_at\": \"2026-10-20T12:00:00Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "05 Refresh session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/refresh",
+            "description": "Rotates refresh token. Manually replace BOTH environment token variables from this response before sending another refresh. Reusing an old refresh token revokes its session. Serialize client refresh calls.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{base_url}}/api/v1/auth/refresh",
+                "description": "Rotates refresh token. Manually replace BOTH environment token variables from this response before sending another refresh. Reusing an old refresh token revokes its session. Serialize client refresh calls.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"access_token\": \"<copy the real access_token from the response>\",\n  \"refresh_token\": \"<copy the real refresh_token from the response>\",\n  \"token_type\": \"bearer\",\n  \"expires_in\": 900,\n  \"user\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"name\": \"Foodify Customer\",\n    \"email\": \"customer@example.com\",\n    \"phone\": null,\n    \"email_verified\": true,\n    \"roles\": [\n      \"customer\"\n    ],\n    \"permissions\": [\n      \"addresses:manage\",\n      \"orders:create\",\n      \"orders:read_own\",\n      \"profile:read\",\n      \"profile:write\"\n    ],\n    \"profile_complete\": false,\n    \"default_address_id\": null,\n    \"created_at\": \"2026-10-20T12:00:00Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "06 Forgot password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/forgot-password",
+            "description": "Only eligible verified local-password accounts receive reset mail; the response stays generic. Copy the token from Mailpit to password_reset_token.\n\nExpected success: HTTP 202. All errors use the documented error envelope.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "202 example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{base_url}}/api/v1/auth/forgot-password",
+                "description": "Only eligible verified local-password accounts receive reset mail; the response stays generic. Copy the token from Mailpit to password_reset_token.\n\nExpected success: HTTP 202. All errors use the documented error envelope.",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Accepted",
+              "code": 202,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"If the account is eligible, an email with the next steps will be sent.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "07 Reset password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/reset-password",
+            "description": "Set new_password to a new 15–128 character passphrase. Consumes reset token and revokes all existing sessions. Update password manually and log in again.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{password_reset_token}}\",\n  \"password\": \"{{new_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{base_url}}/api/v1/auth/reset-password",
+                "description": "Set new_password to a new 15–128 character passphrase. Consumes reset token and revokes all existing sessions. Update password manually and log in again.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"{{password_reset_token}}\",\n  \"password\": \"{{new_password}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"Password changed. Sign in again on your devices.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "08 Logout current session",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{base_url}}/api/v1/auth/logout",
+            "description": "Uses inherited Bearer access_token; revokes the current persistent session. Clear the token variables afterward.\n\nExpected success: HTTP 204. All errors use the documented error envelope."
+          },
+          "response": [
+            {
+              "name": "204 example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": "{{base_url}}/api/v1/auth/logout",
+                "description": "Uses inherited Bearer access_token; revokes the current persistent session. Clear the token variables afterward.\n\nExpected success: HTTP 204. All errors use the documented error envelope."
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "09 Logout all sessions",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{base_url}}/api/v1/auth/logout-all",
+            "description": "Uses inherited Bearer access_token; revokes all sessions owned by this user. Clear local tokens and sign in again.\n\nExpected success: HTTP 204. All errors use the documented error envelope."
+          },
+          "response": [
+            {
+              "name": "204 example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": "{{base_url}}/api/v1/auth/logout-all",
+                "description": "Uses inherited Bearer access_token; revokes all sessions owned by this user. Clear local tokens and sign in again.\n\nExpected success: HTTP 204. All errors use the documented error envelope."
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 Google and Facebook OAuth",
+      "item": [
+        {
+          "name": "01 Start Google sign-in",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/oauth/google/start",
+            "description": "Generate binding_verifier and its lowercase SHA-256 hex binding_challenge first; see postman/README.md. Open returned authorization_url in the browser. Google credentials and exact callback URI must be configured.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"binding_challenge\": \"{{binding_challenge}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{base_url}}/api/v1/auth/oauth/google/start",
+                "description": "Generate binding_verifier and its lowercase SHA-256 hex binding_challenge first; see postman/README.md. Open returned authorization_url in the browser. Google credentials and exact callback URI must be configured.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"binding_challenge\": \"{{binding_challenge}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"authorization_url\": \"https://accounts.google.com/o/oauth2/v2/auth?...\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "02 Start Facebook sign-in",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/oauth/facebook/start",
+            "description": "Uses the same binding flow. For a new Facebook account, first confirm the Foodify email sent by the worker, then start a fresh OAuth flow. Existing local accounts are not automatically linked by email.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"binding_challenge\": \"{{binding_challenge}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{base_url}}/api/v1/auth/oauth/facebook/start",
+                "description": "Uses the same binding flow. For a new Facebook account, first confirm the Foodify email sent by the worker, then start a fresh OAuth flow. Existing local accounts are not automatically linked by email.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"binding_challenge\": \"{{binding_challenge}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"authorization_url\": \"https://www.facebook.com/v26.0/dialog/oauth?...\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "03 Callback reference — browser/provider only",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/v1/auth/oauth/{{provider}}/callback?state={{oauth_state}}&code={{authorization_code}}",
+            "description": "REFERENCE ONLY: the provider redirects the browser here; do not manually fabricate code/state. Valid callback returns 303 to FRONTEND_URL/oauth/callback#ticket=... or #error=email_verification_required. The frontend is outside this backend repository. Copy the fragment ticket to oauth_ticket; never enter provider tokens here. The callback state and code are single-use.\n\nExpected success: HTTP 303. All errors use the documented error envelope.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "04 Complete social sign-in",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/oauth/complete",
+            "description": "Within two minutes, exchange the callback ticket plus the ORIGINAL verifier used to compute the start challenge. The ticket is single-use. Manually copy access_token and refresh_token afterward; add phone/address via customer endpoints.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticket\": \"{{oauth_ticket}}\",\n  \"binding_verifier\": \"{{binding_verifier}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{base_url}}/api/v1/auth/oauth/complete",
+                "description": "Within two minutes, exchange the callback ticket plus the ORIGINAL verifier used to compute the start challenge. The ticket is single-use. Manually copy access_token and refresh_token afterward; add phone/address via customer endpoints.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"ticket\": \"{{oauth_ticket}}\",\n  \"binding_verifier\": \"{{binding_verifier}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"access_token\": \"<copy the real access_token from the response>\",\n  \"refresh_token\": \"<copy the real refresh_token from the response>\",\n  \"token_type\": \"bearer\",\n  \"expires_in\": 900,\n  \"user\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"name\": \"Foodify Customer\",\n    \"email\": \"customer@example.com\",\n    \"phone\": null,\n    \"email_verified\": true,\n    \"roles\": [\n      \"customer\"\n    ],\n    \"permissions\": [\n      \"addresses:manage\",\n      \"orders:create\",\n      \"orders:read_own\",\n      \"profile:read\",\n      \"profile:write\"\n    ],\n    \"profile_complete\": false,\n    \"default_address_id\": null,\n    \"created_at\": \"2026-10-20T12:00:00Z\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 Customer profile and delivery addresses",
+      "item": [
+        {
+          "name": "01 Get my profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/v1/users/me",
+            "description": "Requires profile:read. User identity comes from the Bearer session. profile_complete becomes true once account phone and a default delivery address exist.\n\nExpected success: HTTP 200. All errors use the documented error envelope."
+          },
+          "response": [
+            {
+              "name": "200 example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_url}}/api/v1/users/me",
+                "description": "Requires profile:read. User identity comes from the Bearer session. profile_complete becomes true once account phone and a default delivery address exist.\n\nExpected success: HTTP 200. All errors use the documented error envelope."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"name\": \"Foodify Customer\",\n  \"email\": \"customer@example.com\",\n  \"phone\": null,\n  \"email_verified\": true,\n  \"roles\": [\n    \"customer\"\n  ],\n  \"permissions\": [\n    \"addresses:manage\",\n    \"orders:create\",\n    \"orders:read_own\",\n    \"profile:read\",\n    \"profile:write\"\n  ],\n  \"profile_complete\": false,\n  \"default_address_id\": null,\n  \"created_at\": \"2026-10-20T12:00:00Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "02 Update my profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/users/me",
+            "description": "Requires profile:write. Only name and phone may change. E.164 phone format; use JSON null to clear phone. Name may not be null; empty payload and extra fields are rejected.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{name}}\",\n  \"phone\": \"{{phone}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 example",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{base_url}}/api/v1/users/me",
+                "description": "Requires profile:write. Only name and phone may change. E.164 phone format; use JSON null to clear phone. Name may not be null; empty payload and extra fields are rejected.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{name}}\",\n  \"phone\": \"{{phone}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"name\": \"Foodify Customer\",\n  \"email\": \"customer@example.com\",\n  \"phone\": \"+201012345678\",\n  \"email_verified\": true,\n  \"roles\": [\n    \"customer\"\n  ],\n  \"permissions\": [\n    \"addresses:manage\",\n    \"orders:create\",\n    \"orders:read_own\",\n    \"profile:read\",\n    \"profile:write\"\n  ],\n  \"profile_complete\": false,\n  \"default_address_id\": null,\n  \"created_at\": \"2026-10-20T12:00:00Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "03 List my delivery addresses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/v1/users/me/addresses",
+            "description": "Requires addresses:manage. Only owned addresses are returned in creation order. is_default is calculated from the user pointer.\n\nExpected success: HTTP 200. All errors use the documented error envelope."
+          },
+          "response": [
+            {
+              "name": "200 example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_url}}/api/v1/users/me/addresses",
+                "description": "Requires addresses:manage. Only owned addresses are returned in creation order. is_default is calculated from the user pointer.\n\nExpected success: HTTP 200. All errors use the documented error envelope."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "[\n  {\n    \"label\": \"البيت\",\n    \"recipient_name\": \"Foodify Customer\",\n    \"phone\": \"+201012345678\",\n    \"country_code\": \"EG\",\n    \"city\": \"القاهرة\",\n    \"area\": \"مدينة نصر\",\n    \"street\": \"شارع مثال\",\n    \"building\": \"12\",\n    \"floor\": \"3\",\n    \"apartment\": \"7\",\n    \"delivery_notes\": \"اتصل عند الوصول\",\n    \"latitude\": 30.05,\n    \"longitude\": 31.35,\n    \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n    \"is_default\": true,\n    \"created_at\": \"2026-10-20T12:00:00Z\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "04 Add delivery address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/users/me/addresses",
+            "description": "Requires addresses:manage. Maximum 20 addresses. First address automatically becomes default. Manually copy returned id to address_id. Coordinates are optional as a pair; label, recipient_name, phone, country_code, city, area, street and building are required.\n\nExpected success: HTTP 201. All errors use the documented error envelope.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"البيت\",\n  \"recipient_name\": \"{{name}}\",\n  \"phone\": \"{{phone}}\",\n  \"country_code\": \"EG\",\n  \"city\": \"القاهرة\",\n  \"area\": \"مدينة نصر\",\n  \"street\": \"شارع مثال\",\n  \"building\": \"12\",\n  \"floor\": \"3\",\n  \"apartment\": \"7\",\n  \"delivery_notes\": \"اتصل عند الوصول\",\n  \"latitude\": 30.05,\n  \"longitude\": 31.35\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "201 example",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{base_url}}/api/v1/users/me/addresses",
+                "description": "Requires addresses:manage. Maximum 20 addresses. First address automatically becomes default. Manually copy returned id to address_id. Coordinates are optional as a pair; label, recipient_name, phone, country_code, city, area, street and building are required.\n\nExpected success: HTTP 201. All errors use the documented error envelope.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"label\": \"البيت\",\n  \"recipient_name\": \"{{name}}\",\n  \"phone\": \"{{phone}}\",\n  \"country_code\": \"EG\",\n  \"city\": \"القاهرة\",\n  \"area\": \"مدينة نصر\",\n  \"street\": \"شارع مثال\",\n  \"building\": \"12\",\n  \"floor\": \"3\",\n  \"apartment\": \"7\",\n  \"delivery_notes\": \"اتصل عند الوصول\",\n  \"latitude\": 30.05,\n  \"longitude\": 31.35\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"label\": \"البيت\",\n  \"recipient_name\": \"Foodify Customer\",\n  \"phone\": \"+201012345678\",\n  \"country_code\": \"EG\",\n  \"city\": \"القاهرة\",\n  \"area\": \"مدينة نصر\",\n  \"street\": \"شارع مثال\",\n  \"building\": \"12\",\n  \"floor\": \"3\",\n  \"apartment\": \"7\",\n  \"delivery_notes\": \"اتصل عند الوصول\",\n  \"latitude\": 30.05,\n  \"longitude\": 31.35,\n  \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n  \"is_default\": true,\n  \"created_at\": \"2026-10-20T12:00:00Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "05 Replace delivery address",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/users/me/addresses/{{address_id}}",
+            "description": "Requires addresses:manage. Full replacement of address fields. A missing ID or another user's ID both return 404. Ownership/role/default flags cannot be supplied in the JSON body.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"البيت\",\n  \"recipient_name\": \"{{name}}\",\n  \"phone\": \"{{phone}}\",\n  \"country_code\": \"EG\",\n  \"city\": \"القاهرة\",\n  \"area\": \"مدينة نصر\",\n  \"street\": \"شارع مثال\",\n  \"building\": \"12\",\n  \"floor\": \"3\",\n  \"apartment\": \"7\",\n  \"delivery_notes\": \"اتصل عند الوصول\",\n  \"latitude\": 30.05,\n  \"longitude\": 31.35\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 example",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{base_url}}/api/v1/users/me/addresses/{{address_id}}",
+                "description": "Requires addresses:manage. Full replacement of address fields. A missing ID or another user's ID both return 404. Ownership/role/default flags cannot be supplied in the JSON body.\n\nExpected success: HTTP 200. All errors use the documented error envelope.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"label\": \"البيت\",\n  \"recipient_name\": \"{{name}}\",\n  \"phone\": \"{{phone}}\",\n  \"country_code\": \"EG\",\n  \"city\": \"القاهرة\",\n  \"area\": \"مدينة نصر\",\n  \"street\": \"شارع مثال\",\n  \"building\": \"12\",\n  \"floor\": \"3\",\n  \"apartment\": \"7\",\n  \"delivery_notes\": \"اتصل عند الوصول\",\n  \"latitude\": 30.05,\n  \"longitude\": 31.35\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"label\": \"البيت\",\n  \"recipient_name\": \"Foodify Customer\",\n  \"phone\": \"+201012345678\",\n  \"country_code\": \"EG\",\n  \"city\": \"القاهرة\",\n  \"area\": \"مدينة نصر\",\n  \"street\": \"شارع مثال\",\n  \"building\": \"12\",\n  \"floor\": \"3\",\n  \"apartment\": \"7\",\n  \"delivery_notes\": \"اتصل عند الوصول\",\n  \"latitude\": 30.05,\n  \"longitude\": 31.35,\n  \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n  \"is_default\": true,\n  \"created_at\": \"2026-10-20T12:00:00Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "06 Set default delivery address",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{base_url}}/api/v1/users/me/default-address/{{address_id}}",
+            "description": "Requires addresses:manage. Only a currently owned address can be selected. Returns updated user profile.\n\nExpected success: HTTP 200. All errors use the documented error envelope."
+          },
+          "response": [
+            {
+              "name": "200 example",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [],
+                "url": "{{base_url}}/api/v1/users/me/default-address/{{address_id}}",
+                "description": "Requires addresses:manage. Only a currently owned address can be selected. Returns updated user profile.\n\nExpected success: HTTP 200. All errors use the documented error envelope."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"name\": \"Foodify Customer\",\n  \"email\": \"customer@example.com\",\n  \"phone\": \"+201012345678\",\n  \"email_verified\": true,\n  \"roles\": [\n    \"customer\"\n  ],\n  \"permissions\": [\n    \"addresses:manage\",\n    \"orders:create\",\n    \"orders:read_own\",\n    \"profile:read\",\n    \"profile:write\"\n  ],\n  \"profile_complete\": true,\n  \"default_address_id\": \"550e8400-e29b-41d4-a716-446655440001\",\n  \"created_at\": \"2026-10-20T12:00:00Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "07 Delete delivery address",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/api/v1/users/me/addresses/{{address_id}}",
+            "description": "Requires addresses:manage. Deleting the default picks the oldest remaining address or clears default when none remain. Returns no body.\n\nExpected success: HTTP 204. All errors use the documented error envelope."
+          },
+          "response": [
+            {
+              "name": "204 example",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": "{{base_url}}/api/v1/users/me/addresses/{{address_id}}",
+                "description": "Requires addresses:manage. Deleting the default picks the oldest remaining address or clears default when none remain. Returns no body.\n\nExpected success: HTTP 204. All errors use the documented error envelope."
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "foodify",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.12" },
+  "scripts": {
+    "build": "npm --prefix front run build:production",
+    "typecheck": "npm --prefix front run typecheck",
+    "dev": "npm --prefix front run dev"
+  }
+}

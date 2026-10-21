@@ -1,0 +1,28 @@
+# Dependency, cache and build outputs
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.tsbuildinfo
+dist/
+build/
+*.egg-info/
+.vercel/
+
+# Credentials and local data
+.env
+.env.*
+!.env.*.example
+!.env.example
+*.local
+*.log
+*.db
+*.sqlite*
+.DS_Store
+*.tar.gz
+back/sites/
+.vercel
+.env*.local

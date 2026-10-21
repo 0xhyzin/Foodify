@@ -1,0 +1,86 @@
+# Development only. Run: docker compose --env-file .env.development up --build
+name: foodify-development
+
+x-application: &application
+  build: .
+  env_file: .env.development
+  environment:
+    APP_ENV: development
+    # The API needs its restricted DATABASE_URL, never MySQL root credentials.
+    MYSQL_PASSWORD: ""
+    MYSQL_ROOT_PASSWORD: ""
+    DATABASE_URL: mysql+pymysql://foodify:${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env.development}@mysql:3306/foodify?charset=utf8mb4
+    REDIS_URL: redis://redis:6379/0
+    SMTP_HOST: mailpit
+    SMTP_PORT: 1025
+    SMTP_USE_TLS: "false"
+    SMTP_USE_SSL: "false"
+  depends_on:
+    mysql:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+    mailpit:
+      condition: service_started
+  init: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  read_only: true
+  tmpfs:
+    - /tmp
+
+services:
+  api:
+    <<: *application
+    command: ["python", "run.py", "--env", "development", "--host", "0.0.0.0"]
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  email-worker:
+    <<: *application
+    command: ["python", "-m", "app.worker"]
+    restart: on-failure
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: foodify
+      MYSQL_USER: foodify
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env.development}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env.development}
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci", "--default-time-zone=+00:00"]
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_PASSWORD\" mysql --protocol=TCP -h 127.0.0.1 -u \"$$MYSQL_USER\" -D \"$$MYSQL_DATABASE\" -e 'SELECT 1' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+
+volumes:
+  mysql-data:
+  redis-data:

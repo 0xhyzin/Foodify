@@ -1,0 +1,10 @@
+export { LoginPage } from './pages/login-page';
+export { RegisterPage } from './pages/register-page';
+export { VerifyEmailPage } from './pages/verify-email-page';
+export { ConfirmEmailPage } from './pages/confirm-email-page';
+export { ForgotPasswordPage } from './pages/forgot-password-page';
+export { ResetPasswordSentPage } from './pages/reset-password-sent-page';
+export { ResetPasswordPage } from './pages/reset-password-page';
+export { ResetPasswordSuccessPage } from './pages/reset-password-success-page';
+export { SocialSignInPage } from './pages/social-sign-in-page';
+export { OAuthCallbackPage } from './pages/oauth-callback-page';

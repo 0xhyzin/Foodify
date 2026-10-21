@@ -1,0 +1,11 @@
+back/
+deploy/
+docs/
+render.yaml
+.env*
+!.env.example
+**/.git
+**/node_modules
+**/dist
+**/.env*
+!**/.env.*.example

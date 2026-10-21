@@ -1,0 +1,1 @@
+"""All-sessions logout feature."""
