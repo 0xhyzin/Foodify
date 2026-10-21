@@ -17,7 +17,7 @@ export function AccountLayout() {
   const navigate = useNavigate();
   return <div className="site-frame">
     <a className="skip-link" href="#main-content" onClick={(e) => { e.preventDefault(); document.querySelector<HTMLElement>('#main-content')?.focus(); }}>انتقل للمحتوى</a>
-    <header className="site-header"><Link to={user ? '/account' : '/login'} className="logo" aria-label="Foodify — الصفحة الرئيسية"><span className="logo-mark" aria-hidden="true">f</span><span className="wordmark">foodify</span></Link><div className="header-actions">{user && <Link className="account-link" to="/account">حسابي</Link>}<button type="button" className="help-button" onClick={() => setHelpOpen(true)}><CircleHelp size={18} />المساعدة</button></div></header>
+    <header className="site-header"><Link to="/" className="logo" aria-label="Foodify — الصفحة الرئيسية"><span className="logo-mark" aria-hidden="true">f</span><span className="wordmark">foodify</span></Link><div className="header-actions">{user && <Link className="account-link" to="/account">حسابي</Link>}<button type="button" className="help-button" onClick={() => setHelpOpen(true)}><CircleHelp size={18} />المساعدة</button></div></header>
     <main className="main-grid" id="main-content" tabIndex={-1}><section className="form-area" aria-label="حساب المستخدم"><div className="form-shell"><Outlet /></div></section><BrandPanel /></main>
     <footer className="site-footer"><span dir="ltr">© {new Date().getFullYear()} foodify</span><span>أكل ومقاضي، ببساطة.</span></footer>
     {appConfig.isDemo && <div className="demo-bar"><span><FlaskConical size={15} aria-hidden="true" />نسخة عرض تفاعلية</span><button type="button" className="text-link" onClick={() => setDemoOpen(true)}>عن النسخة دي</button></div>}

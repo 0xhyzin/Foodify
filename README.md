@@ -2,6 +2,8 @@
 
 Foodify هو نظام توصيل أكل. المشروع متقسم إلى واجهة React مستقلة وباك إند FastAPI مستقل، بحيث كل جزء يقدر يتطور ويتنشر بشكل منفصل.
 
+الرئيسية الآن تعرض ٤ مطاعم ديمو، وكل مطعم فيه ٣ أكلات، مع بحث وتصنيف وتفاصيل المكونات والأسعار. بياناتها في [ملف JavaScript مستقل](front/src/features/catalog/data/restaurants.js)، وتعمل دون الباك أو تسجيل دخول. [شرح واجهة المطاعم وتنظيم مكوناتها](front/docs/CATALOG.md).
+
 الواجهة منشورة على [Vercel](https://foodify-flax.vercel.app)، والكود في [0xhyzin/Foodify](https://github.com/0xhyzin/Foodify). الخطة المجانية للباك هي FastAPI على Render، وMySQL وValkey على Aiven، ورسائل البريد عبر Brevo. الباك ما زال يحتاج إعداد حسابات الخدمات قبل نشره؛ تفاصيل الإعداد في [دليل النشر](docs/DEPLOYMENT.md). قاعدة البيانات تظل MySQL.
 
 ## شكل المشروع

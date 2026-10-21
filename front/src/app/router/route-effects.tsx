@@ -4,7 +4,7 @@ const pageTitles: Record<string, string> = { '/login': 'تسجيل الدخول'
 export function RouteEffects() {
   const { pathname } = useLocation();
   useEffect(() => {
-    document.title = `Foodify — ${pageTitles[pathname] || 'حسابك'}`;
+    document.title = `Foodify — ${pathname === '/' ? 'مطاعم على ذوقك' : pathname.startsWith('/restaurants/') ? 'قائمة المطعم' : pageTitles[pathname] || 'حسابك'}`;
     window.scrollTo({ top: 0, behavior: 'instant' });
     const timer = setTimeout(() => document.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true }), 50);
     return () => clearTimeout(timer);

@@ -2,6 +2,8 @@
 
 الواجهة تطبق Clean Architecture بشكل مبسّط، مع تنظيم حسب الـ feature وبناء العرض من مكونات صغيرة. التركيز على حساب العميل في هذه المرحلة؛ أغلب العمليات لها DTO وuse case مستقل، والصفحات لا تعرف كيفية تخزين البيانات أو إرسالها.
 
+أضيفت واجهة `catalog` مستقلة للعرض المحلي: نماذج في `domain`، وبيانات في ملف `data/restaurants.js`، ودالة ترشيح في `application`، وصفحات ومكونات في `presentation`. لا تحتوي HTTP repositories أو ربطًا بقاعدة البيانات؛ تفاصيلها في [CATALOG.md](CATALOG.md). `CatalogLayout` خارج `SessionProvider`، الذي أصبح داخل فرع التسجيل والحساب في router، لمنع بدء استعادة الجلسة أثناء تصفح المطاعم.
+
 الشرح الشامل للواجهة في [README](../README.md)، ومسؤولية الدوال والمكونات بالتفصيل في [FUNCTIONS.md](FUNCTIONS.md). أغلب العمليات لها use case مستقل؛ `completeProviderSignIn` موصلة حاليًا مباشرة من composition root إلى repository.
 
 ## اتجاه الاعتمادات

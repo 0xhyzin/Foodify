@@ -7,7 +7,7 @@
 | الملف | الدالة أو التعريف | المسؤولية ومسار التنفيذ |
 | --- | --- | --- |
 | [main.tsx](../src/main.tsx) | bootstrap على مستوى الملف | تحميل الخط وCSS، ثم `normalizeExternalLinks`، ثم `createRoot(...).render` تحت `StrictMode` |
-| [app.tsx](../src/app/app.tsx) | `App()` | تركيب ErrorBoundary وServicesProvider وSessionProvider وToastProvider وAppRouter |
+| [app.tsx](../src/app/app.tsx) | `App()` | تركيب ErrorBoundary وServicesProvider وToastProvider وAppRouter؛ SessionProvider داخل فرع الحساب في router |
 | [services.ts](../src/app/services.ts) | `createAppServices(): AppServices` | اختيار api أو demo ثم تركيب use cases فوق repository المناسب |
 | نفس الملف | `createApiServices()` | إنشاء مدير الجلسة وHTTP client وOAuth flow ومستودعات HTTP، ثم إرجاع الخدمات |
 | نفس الملف | `AppServices` | عقد الخدمة: `auth` و`account` و`demo`؛ ليس API response |
@@ -23,7 +23,7 @@
 | --- | --- | --- |
 | [services-provider.tsx](../src/app/providers/services-provider.tsx) | `ServicesProvider({ services, children })` | توزيع AppServices عبر React Context |
 | نفس الملف | `useServices()` | استرجاع الخدمات أو رمي خطأ إذا غاب provider |
-| [session-provider.tsx](../src/app/providers/session-provider.tsx) | `SessionProvider({ children })` | تحميل المستخدم عند بداية التطبيق وإدارة `user/loading` |
+| [session-provider.tsx](../src/app/providers/session-provider.tsx) | `SessionProvider({ children })` | تحميل المستخدم عند فتح صفحات التسجيل أو الحساب وإدارة `user/loading`؛ غير مستخدم لتصفح المطاعم |
 | نفس الملف | `refresh()` | قراءة المستخدم وتحديثه إذا لم تتغير revision؛ خطأ الشبكة ينتقل للمستدعي مع الاحتفاظ بالملف |
 | نفس الملف | `setUser(user)` | setter من React لتحديث المستخدم المعروض بعد نجاح عملية |
 | نفس الملف | `useSession()` | إرجاع `user/loading/refresh/setUser`، مع التحقق من وجود provider |
@@ -38,7 +38,7 @@
 
 | الملف | الدالة أو المكون | المسؤولية |
 | --- | --- | --- |
-| [app-router.tsx](../src/app/router/app-router.tsx) | `AppRouter()` | تعريف HashRouter والمسارات وتجميع صفحات الحساب تحت layout مشترك |
+| [app-router.tsx](../src/app/router/app-router.tsx) | `AppRouter()` | تعريف HashRouter وفرع الكتالوج العام وفرع الحساب المحاط بـ SessionProvider |
 | [route-guards.tsx](../src/app/router/route-guards.tsx) | `RequireSession()` | انتظار الجلسة ثم Outlet أو تحويل إلى login |
 | نفس الملف | `GuestOnly()` | عرض صفحات الزائر فقط لغير المسجل؛ تحويل المسجل إلى الوجهة المناسبة |
 | نفس الملف | `RequirePhone()` | منع الانتقال لخطوة عنوان onboarding دون موبايل |
@@ -328,3 +328,23 @@ AddressEditorPage
 ~~~
 
 الـ input يعبر حدودًا واضحة. الـ page لا تبني URL الخاص بـ API، والـ use case لا يعرف fetch، وmapper لا ينفذ التنقل.
+
+## واجهة المطاعم الديمو
+
+راجع [CATALOG.md](CATALOG.md) لهيكل هذه الوظيفة ورحلة استخدامها. المصدر مستقل عن خدمات الحساب والباك.
+
+| الملف | المكون أو الدالة | المسؤولية |
+| --- | --- | --- |
+| [catalog-layout.tsx](../src/app/layouts/catalog-layout.tsx) | `CatalogLayout` | إطار صفحات المطاعم العام والتنقل ونافذة شرح الديمو |
+| [restaurants.js](../src/features/catalog/data/restaurants.js) | `demoRestaurants / restaurantCategories` | ٤ مطاعم، ثلاث وجبات لكل مطعم، وتعريف التصنيفات |
+| [filter-restaurants.ts](../src/features/catalog/application/filter-restaurants.ts) | `filterRestaurants / normalizeSearch` | ترشيح المطاعم محليًا بحسب التصنيف والبحث العربي؛ تطبيع النص helper داخلي |
+| [restaurants-page.tsx](../src/features/catalog/presentation/pages/restaurants-page.tsx) | `RestaurantsPage` | حالة البحث والتصنيف وعرض النتائج وحالة البحث الفارغ |
+| [restaurant-page.tsx](../src/features/catalog/presentation/pages/restaurant-page.tsx) | `RestaurantPage` | مطابقة معرف المطعم في الرابط وعرض قائمته واختيار تفاصيل الوجبة |
+| [catalog-hero.tsx](../src/features/catalog/presentation/components/catalog-hero.tsx) | `CatalogHero / browseRestaurants` | مقدمة الرئيسية والتمرير مع نقل التركيز للقائمة |
+| [catalog-filters.tsx](../src/features/catalog/presentation/components/catalog-filters.tsx) | `CatalogFilters` | حقل البحث وأزرار التصنيفات ومسح البحث مع استعادة التركيز |
+| [restaurant-card.tsx](../src/features/catalog/presentation/components/restaurant-card.tsx) | `RestaurantCard` | بطاقة تربط بقائمة المطعم |
+| [restaurant-facts.tsx](../src/features/catalog/presentation/components/restaurant-facts.tsx) | `RestaurantFacts` | التقييم ووقت ورسوم التوصيل التجريبية |
+| [food-illustration.tsx](../src/features/catalog/presentation/components/food-illustration.tsx) | `FoodIllustration` | رسومات SVG محلية حسب نوع الأكل |
+| [meal-card.tsx](../src/features/catalog/presentation/components/meal-card.tsx) | `MealCard` | بيانات الوجبة وزر يحدد الوجبة لعرض تفاصيلها |
+| [meal-details.tsx](../src/features/catalog/presentation/components/meal-details.tsx) | `MealDetails` | نافذة المكونات والسعر التجريبي |
+| [formatters.ts](../src/features/catalog/presentation/formatters.ts) | `formatPrice / formatNumber` | تنسيق الأسعار بالجنيه والأرقام للعربية المصرية |
