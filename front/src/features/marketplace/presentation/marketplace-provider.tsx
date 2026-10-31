@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -11,7 +12,7 @@ import { useServices } from "@/app/providers/services-provider";
 import { useSession } from "@/app/providers/session-provider";
 import type { Cart } from "../domain/models";
 import { createUpdateQuantity } from "../application/update-quantity/use-case";
-import { getErrorMessage } from "@/shared/domain/app-error";
+import { AppError, getErrorMessage } from "@/shared/domain/app-error";
 interface MarketContext {
   carts: Cart[];
   favorites: string[];
@@ -25,76 +26,129 @@ interface MarketContext {
   favorite(id: string): Promise<void>;
 }
 const Context = createContext<MarketContext | null>(null);
+interface MarketSession {
+  owner: string | null;
+  cartRevision: number;
+  favoriteRevision: number;
+  cartRead: number;
+  favoriteRead: number;
+  cartPending: boolean;
+  favorites: string[];
+  favoriteQueue: Promise<void>;
+}
 export function MarketplaceProvider({ children }: { children: ReactNode }) {
   const { marketplace: services } = useServices(),
     { user } = useSession();
-  const owner = user?.id ?? null,
-    latestOwner = useRef(owner);
-  latestOwner.current = owner;
+  const owner = user?.id ?? null;
+  const session = useMemo<MarketSession>(() => ({
+    owner,
+    cartRevision: 0,
+    favoriteRevision: 0,
+    cartRead: 0,
+    favoriteRead: 0,
+    cartPending: false,
+    favorites: [],
+    favoriteQueue: Promise.resolve(),
+  }), [owner]);
+  const latestSession = useRef(session);
+  latestSession.current = session;
   const [snapshot, setSnapshot] = useState<{
-    owner: string | null;
+    session: MarketSession;
     carts: Cart[];
     favorites: string[];
-  }>({ owner: null, carts: [], favorites: [] });
-  const [busy, setBusy] = useState(false),
-    [issue, setIssue] = useState("");
-  const activeMutation = useRef(false);
+  }>({ session, carts: [], favorites: [] });
+  const [busySession, setBusySession] = useState<MarketSession | null>(null),
+    [issue, setIssue] = useState<{ session: MarketSession; message: string } | null>(null);
+  const loadSnapshot = useCallback(async (signal?: AbortSignal) => {
+    if (!session.owner || latestSession.current !== session) return;
+    const cartRead = ++session.cartRead;
+    const favoriteRead = ++session.favoriteRead;
+    const current = () => latestSession.current === session && !signal?.aborted;
+    // If a mutation finishes during a read, read again instead of publishing
+    // an older snapshot over that mutation's confirmed response.
+    async function loadCarts() {
+      while (current() && cartRead === session.cartRead) {
+        const revision = session.cartRevision;
+        const carts = await services.carts.list(signal);
+        if (!current() || cartRead !== session.cartRead) return;
+        if (revision !== session.cartRevision) continue;
+        setSnapshot((previous) => ({
+          session,
+          carts,
+          favorites: previous.session === session ? previous.favorites : [],
+        }));
+        return;
+      }
+    }
+    async function loadFavorites() {
+      while (current() && favoriteRead === session.favoriteRead) {
+        const revision = session.favoriteRevision;
+        const favorites = await services.catalog.favorites(signal);
+        if (!current() || favoriteRead !== session.favoriteRead) return;
+        if (revision !== session.favoriteRevision) continue;
+        session.favorites = favorites;
+        setSnapshot((previous) => ({
+          session,
+          carts: previous.session === session ? previous.carts : [],
+          favorites,
+        }));
+        return;
+      }
+    }
+    await Promise.all([loadCarts(), loadFavorites()]);
+  }, [services, session]);
   const refresh = useCallback(async () => {
-    if (!owner) return;
-    const [carts, favorites] = await Promise.all([
-      services.carts.list(),
-      services.catalog.favorites(),
-    ]);
-    if (latestOwner.current === owner) setSnapshot({ owner, carts, favorites });
-  }, [owner, services]);
+    const request = loadSnapshot();
+    const read = session.cartRead;
+    await request;
+    if (latestSession.current === session && read === session.cartRead) setIssue(null);
+  }, [loadSnapshot, session]);
   useEffect(() => {
-    setIssue("");
     const controller = new AbortController();
-    if (owner)
-      Promise.all([
-        services.carts.list(controller.signal),
-        services.catalog.favorites(controller.signal),
-      ])
-        .then(([carts, favorites]) => {
-          if (!controller.signal.aborted && latestOwner.current === owner)
-            setSnapshot({ owner, carts, favorites });
-        })
-        .catch((error) => {
-          if (!controller.signal.aborted) setIssue(getErrorMessage(error));
-        });
+    const request = loadSnapshot(controller.signal);
+    const read = session.cartRead;
+    void request.catch((error) => {
+      if (!controller.signal.aborted && latestSession.current === session && read === session.cartRead)
+        setIssue({ session, message: getErrorMessage(error) });
+    });
     return () => controller.abort();
-  }, [owner, services]);
+  }, [loadSnapshot, session]);
   async function change(action: () => Promise<Cart>) {
-    if (activeMutation.current) return;
-    activeMutation.current = true;
-    setBusy(true);
-    setIssue("");
+    if (!session.owner || latestSession.current !== session)
+      throw new AppError("authentication_required", "سجّل الدخول عشان تكمل.");
+    if (session.cartPending)
+      throw new AppError("cart_update_pending", "استنى تحديث السلة الحالي وبعدين جرّب تاني.");
+    session.cartPending = true;
+    setBusySession(session);
+    setIssue(null);
     try {
       const cart = await action();
-      if (latestOwner.current === owner)
+      if (latestSession.current === session) {
+        session.cartRevision += 1;
         setSnapshot((previous) => ({
-          owner,
+          session,
           carts: [
-            ...(previous.owner === owner ? previous.carts : []).filter(
+            ...(previous.session === session ? previous.carts : []).filter(
               (c) => c.restaurantId !== cart.restaurantId,
             ),
             ...(cart.items.length ? [cart] : []),
           ],
-          favorites: previous.owner === owner ? previous.favorites : [],
+          favorites: previous.session === session ? previous.favorites : [],
         }));
+      }
     } finally {
-      activeMutation.current = false;
-      setBusy(false);
+      session.cartPending = false;
+      setBusySession((previous) => previous === session ? null : previous);
     }
   }
   const visible: { carts: Cart[]; favorites: string[] } =
-    snapshot.owner === owner ? snapshot : { carts: [], favorites: [] };
+    snapshot.session === session ? snapshot : { carts: [], favorites: [] };
   return (
     <Context.Provider
       value={{
         ...visible,
-        busy,
-        issue,
+        busy: busySession === session,
+        issue: issue?.session === session ? issue.message : "",
         refresh,
         add: (id, productId) =>
           change(() => services.carts.add(id, productId, 1)),
@@ -102,17 +156,26 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
           change(() => createUpdateQuantity(services.carts)(id, lineId, qty)),
         remove: (id, lineId) => change(() => services.carts.remove(id, lineId)),
         clear: (id) => change(() => services.carts.clear(id)),
-        favorite: async (id) => {
-          const values = await services.catalog.setFavorite(
-            id,
-            !visible.favorites.includes(id),
-          );
-          if (latestOwner.current === owner)
-            setSnapshot((p) => ({
-              carts: p.owner === owner ? p.carts : [],
-              owner,
-              favorites: values,
-            }));
+        favorite: (id) => {
+          const request = session.favoriteQueue.then(async () => {
+            if (!session.owner || latestSession.current !== session)
+              throw new AppError("authentication_required", "سجّل الدخول عشان تكمل.");
+            const favorites = await services.catalog.setFavorite(
+              id,
+              !session.favorites.includes(id),
+            );
+            if (latestSession.current === session) {
+              session.favoriteRevision += 1;
+              session.favorites = favorites;
+              setSnapshot((previous) => ({
+                session,
+                carts: previous.session === session ? previous.carts : [],
+                favorites,
+              }));
+            }
+          });
+          session.favoriteQueue = request.catch(() => undefined);
+          return request;
         },
       }}
     >

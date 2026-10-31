@@ -26,3 +26,5 @@ build/
 back/sites/
 .vercel
 .env*.local
+output/private-backups/
+.playwright-cli/

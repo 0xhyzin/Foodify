@@ -11,7 +11,17 @@ export function OperationsPage() {
     [offset, setOffset] = useState(0);
   const catalog = useResource(
     useCallback(
-      (signal: AbortSignal) => services.catalog.list({}, signal),
+      async (signal: AbortSignal) => {
+        const items = [];
+        let offset = 0;
+        for (;;) {
+          const page = await services.catalog.list({ offset }, signal);
+          items.push(...page.items);
+          if (!page.hasMore || !page.items.length)
+            return { items, hasMore: false };
+          offset += page.items.length;
+        }
+      },
       [services],
     ),
   );

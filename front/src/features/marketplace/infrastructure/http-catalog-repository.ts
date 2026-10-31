@@ -44,7 +44,7 @@ export class HttpCatalogRepository implements CatalogRepository {
         { authenticated: false, signal },
       );
       items.push(...result.data.menu);
-      if (!result.data.pagination.has_more || offset >= 900) break;
+      if (!result.data.pagination.has_more || !result.data.menu.length) break;
     }
     return items.map(productFromDto);
   }

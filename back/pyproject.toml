@@ -17,6 +17,7 @@ include = ["app*"]
 
 [tool.setuptools.package-data]
 "app.core" = ["swagger_ui.js"]
+"app.ordering" = ["data/*.json"]
 
 [tool.fastapi]
 entrypoint = "app.hosted:app"

@@ -13,9 +13,9 @@
 | `app/ordering/shared/` | DTOs والعقود والقواعد والـmappers والمبالغ المشتركة. |
 | `app/ordering/infrastructure/` | SQLAlchemy repositories وتهيئة حالة طرق الدفع. |
 | `migrations/versions/20261031_0004_marketplace_payments.py` | MySQL schema والقيود والفهارس والجداول الجديدة. |
-| `scripts/seed_catalog.py` | تحميل بيانات العرض المعتمدة محليًا عند التشغيل الصريح فقط. |
+| `scripts/seed_catalog.py` | مزامنة بيانات العرض المعتمدة عند التشغيل الصريح، بعد التحقق من اتصال القاعدة وإصدارها، مع حارسين إضافيين للإنتاج. |
 | `postman/Foodify.Sprint2.postman_collection.json` | طلبات الـAPI القابلة للاستيراد إلى Postman. |
 | `../front/src/features/marketplace/` | واجهة Marketplace، طبقات domain/application/infrastructure/presentation، ومستودعات HTTP التي تقرأ بيانات API. |
-| `../shared/demo-catalog.json` و`../shared/demo-categories.json` | مدخل seed للباك إند لمزامنة بيانات العرض إلى MySQL؛ لا تستورده الواجهة. |
+| `app/ordering/data/demo-catalog.json` و`app/ordering/data/demo-categories.json` | المصدر الوحيد لعينة seed، داخل حزمة الباك ليدخل في Docker ونشر FastAPI Cloud وحزمة Python؛ لا تستورده الواجهة. |
 
 لم تُعدّل اختبارات الفريق ولم تُنشأ أو تُشغّل test suites. لم تُطبق Migration 0004 على قاعدة مستضافة ولم تُنشر التعديلات. إعداد Paymob المحلي مستبعد من Git؛ لا تضع مفاتيح الخدمة في هذه الوثائق أو Postman أو الواجهة.

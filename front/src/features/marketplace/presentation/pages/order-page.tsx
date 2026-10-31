@@ -44,9 +44,7 @@ export function OrderPage() {
     );
   const canPay =
     ["card", "vodafone_cash", "orange_cash"].includes(order.paymentMethod) &&
-    ["pending", "failed", "initializing", "initialization_unknown"].includes(
-      order.paymentStatus,
-    );
+    ["pending", "failed"].includes(order.paymentStatus);
   const run = async (action: () => Promise<unknown>) => {
     if (inFlight.current) return;
     inFlight.current = true;
@@ -57,6 +55,7 @@ export function OrderPage() {
       refreshOrder();
     } catch (cause) {
       setActionError(getErrorMessage(cause));
+      refreshOrder();
     } finally {
       inFlight.current = false;
       setBusy(false);
@@ -105,6 +104,17 @@ export function OrderPage() {
               حالة الدفع
             </h2>
             <p>{paymentLabels[order.paymentStatus] ?? order.paymentStatus}</p>
+            {order.paymentStatus === "initializing" ? (
+              <p className="mp-notice" role="status">
+                بوابة الدفع بتتجهّز. استنى التحديث التلقائي قبل ما تفتحها، وما
+                تعملش طلب جديد لنفس الدفع.
+              </p>
+            ) : order.paymentStatus === "initialization_unknown" ? (
+              <p className="mp-notice" role="status">
+                لسه مش قادرين نتأكد من تجهيز الدفع. ما تدفعش مرة تانية وما تعملش
+                طلب بديل؛ تواصل مع الدعم برقم الطلب لمراجعة العملية.
+              </p>
+            ) : null}
             {canPay ? (
               <>
                 <p>

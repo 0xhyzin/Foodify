@@ -1,6 +1,6 @@
 """Explicit, allow-listed seed of the approved demo marketplace.
 
-Canonical fixtures live in shared/ and never pretend the brands are partners.
+Canonical fixtures ship with app.ordering and do not imply brand partnerships.
 Stable UUIDs preserve cart/order references. Only known demo rows are updated.
 Production requires both an explicit command flag and an environment opt-in.
 """
@@ -9,13 +9,14 @@ import argparse
 import json
 import os
 from decimal import Decimal
-from pathlib import Path
+from importlib.resources import files
 
 from app.core.config import get_settings
 from app.infrastructure import models as _identity_models  # noqa: F401
-from app.infrastructure.database import get_session_factory
+from app.infrastructure.database import check_database_readiness, get_session_factory
 from app.ordering.models import BrowseCategory, MenuItem, Restaurant
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 
 
 RETIRED_DEMO_MERCHANT_IDS = {
@@ -43,12 +44,21 @@ def main() -> None:
             "Production catalog seeding requires --allow-production and "
             "FOODIFY_ALLOW_DEMO_CATALOG_SEED=true."
         )
-    shared = Path(__file__).resolve().parents[2] / "shared"
-    catalog = json.loads((shared / "demo-catalog.json").read_text())
-    categories = json.loads((shared / "demo-categories.json").read_text())
+    resources = files("app.ordering").joinpath("data")
+    catalog = json.loads(resources.joinpath("demo-catalog.json").read_text(encoding="utf-8"))
+    categories = json.loads(
+        resources.joinpath("demo-categories.json").read_text(encoding="utf-8")
+    )
     product_count = sum(len(entry["meals"]) for entry in catalog)
     current_ids = {entry["id"] for entry in catalog}
     managed_ids = current_ids | RETIRED_DEMO_MERCHANT_IDS
+    try:
+        check_database_readiness()
+    except (RuntimeError, SQLAlchemyError):
+        raise SystemExit(
+            "Catalog was not changed. Check the database connection and apply the current "
+            "migrations with python -m scripts.release before retrying."
+        ) from None
     with get_session_factory()() as session, session.begin():
         for merchant in session.scalars(
             select(Restaurant).where(Restaurant.id.in_(RETIRED_DEMO_MERCHANT_IDS))
