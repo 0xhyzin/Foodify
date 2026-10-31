@@ -86,6 +86,18 @@ def create_app() -> FastAPI:
     api.include_router(payments_router)
     app.include_router(api)
 
+    @app.get("/", tags=["Health"], include_in_schema=False)
+    def service_info() -> dict[str, object]:
+        return {
+            "service": settings.app_name,
+            "status": "alive",
+            "api_base": "/api/v1",
+            "health": {
+                "live": "/health/live",
+                "ready": "/health/ready",
+            },
+        }
+
     @app.get("/health/live", tags=["Health"])
     def liveness() -> dict[str, str]:
         return {"status": "alive"}
