@@ -8,9 +8,7 @@ from app.users.shared.interfaces import SessionRepository, UserRepository
 
 
 class BrowserLogoutService:
-    def __init__(
-        self, users: UserRepository, sessions: SessionRepository, uow: UnitOfWork
-    ) -> None:
+    def __init__(self, users: UserRepository, sessions: SessionRepository, uow: UnitOfWork) -> None:
         self.users = users
         self.sessions = sessions
         self.uow = uow

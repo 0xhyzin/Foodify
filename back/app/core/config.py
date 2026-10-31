@@ -30,6 +30,16 @@ class Settings(BaseSettings):
     app_name: str = "Foodify API"
     debug: bool = False
     docs_enabled: bool = True
+    allow_simulated_payments: bool = False
+    allow_cash_on_delivery: bool = True
+    paymob_secret_key: SecretStr | None = None
+    paymob_public_key: str | None = None
+    paymob_hmac_secret: SecretStr | None = None
+    paymob_card_integration_id: int | None = Field(default=None, gt=0)
+    paymob_wallet_integration_id: int | None = Field(default=None, gt=0)
+    paymob_live: bool = False
+    instapay_recipient: str | None = Field(default=None, max_length=120)
+    instapay_recipient_name: str | None = Field(default=None, max_length=160)
     host: str = "127.0.0.1"
     port: int = Field(default=8000, ge=1, le=65535)
     workers: int = Field(default=1, ge=1, le=32)
@@ -101,22 +111,38 @@ class Settings(BaseSettings):
         def secret_value(value: str | SecretStr) -> str:
             return value.get_secret_value() if isinstance(value, SecretStr) else value
 
-        if not values.get("database_url") and values.get("mysql_host") and values.get("mysql_password"):
+        if (
+            not values.get("database_url")
+            and values.get("mysql_host")
+            and values.get("mysql_password")
+        ):
             connection = URL.create(
-                "mysql+pymysql", username=values.get("mysql_user", "foodify"),
-                password=secret_value(values["mysql_password"]), host=values["mysql_host"],
-                port=int(values.get("mysql_port", 3306)), database=values.get("mysql_database", "foodify"),
+                "mysql+pymysql",
+                username=values.get("mysql_user", "foodify"),
+                password=secret_value(values["mysql_password"]),
+                host=values["mysql_host"],
+                port=int(values.get("mysql_port", 3306)),
+                database=values.get("mysql_database", "foodify"),
                 query={"charset": "utf8mb4"},
             )
             values["database_url"] = connection.render_as_string(hide_password=False)
             if not values.get("migration_database_url") and values.get("mysql_migration_password"):
                 values["migration_database_url"] = connection.set(
-                    username="foodify_migrator", password=secret_value(values["mysql_migration_password"]),
+                    username="foodify_migrator",
+                    password=secret_value(values["mysql_migration_password"]),
                 ).render_as_string(hide_password=False)
-        if not values.get("redis_url") and values.get("redis_host") and values.get("redis_password"):
+        if (
+            not values.get("redis_url")
+            and values.get("redis_host")
+            and values.get("redis_password")
+        ):
             values["redis_url"] = URL.create(
-                "redis", username="default", password=secret_value(values["redis_password"]),
-                host=values["redis_host"], port=6379, database="0",
+                "redis",
+                username="default",
+                password=secret_value(values["redis_password"]),
+                host=values["redis_host"],
+                port=6379,
+                database="0",
             ).render_as_string(hide_password=False)
         return values
 
@@ -142,11 +168,20 @@ class Settings(BaseSettings):
     @property
     def browser_allowed_origins(self) -> list[str]:
         return list(
-            dict.fromkeys([*self.cors_origins, canonical_origin(self.frontend_url, allow_path=True)])
+            dict.fromkeys(
+                [*self.cors_origins, canonical_origin(self.frontend_url, allow_path=True)]
+            )
         )
 
     @model_validator(mode="after")
     def validate_security_settings(self) -> "Settings":
+        if self.paymob_secret_key and self.paymob_public_key:
+            marker = "_live_" if self.paymob_live else "_test_"
+            if (
+                marker not in self.paymob_secret_key.get_secret_value()
+                or marker not in self.paymob_public_key
+            ):
+                raise ValueError("PAYMOB_LIVE must match the test/live mode of both Paymob keys.")
         try:
             database = make_url(self.database_url)
         except (ArgumentError, ValueError):
@@ -156,7 +191,9 @@ class Settings(BaseSettings):
         if self.migration_database_url:
             migration = make_url(self.migration_database_url)
             if migration.get_backend_name() != database.get_backend_name():
-                raise ValueError("Runtime and migration databases must use the same database engine.")
+                raise ValueError(
+                    "Runtime and migration databases must use the same database engine."
+                )
         redis = urlsplit(self.redis_url)
         if redis.scheme not in {"redis", "rediss"} or not redis.hostname:
             raise ValueError("REDIS_URL must be a valid Redis connection URL.")
@@ -174,10 +211,15 @@ class Settings(BaseSettings):
         if self.smtp_use_ssl and self.smtp_use_tls:
             raise ValueError("Choose SMTP_USE_SSL or SMTP_USE_TLS, not both.")
         if self.database_tls_required and not (self.database_ssl_ca or self.database_ssl_ca_pem):
-            raise ValueError("Verified database TLS requires DATABASE_SSL_CA or DATABASE_SSL_CA_PEM.")
+            raise ValueError(
+                "Verified database TLS requires DATABASE_SSL_CA or DATABASE_SSL_CA_PEM."
+            )
         if self.email_provider == "brevo" and not self.brevo_api_key:
             raise ValueError("EMAIL_PROVIDER=brevo requires BREVO_API_KEY.")
-        if self.frontend_proxy_secret and len(self.frontend_proxy_secret.get_secret_value().encode()) < 32:
+        if (
+            self.frontend_proxy_secret
+            and len(self.frontend_proxy_secret.get_secret_value().encode()) < 32
+        ):
             raise ValueError("FRONTEND_PROXY_SECRET must contain at least 32 bytes.")
         smtp_password = self.smtp_password.get_secret_value() if self.smtp_password else ""
         if bool(self.smtp_username) != bool(smtp_password):
@@ -272,7 +314,11 @@ class Settings(BaseSettings):
             credentials = [database.password, redis.password, self.smtp_username, smtp_password]
             credentials.extend(
                 value.get_secret_value()
-                for value in (self.oauth_google_client_secret, self.oauth_facebook_client_secret, self.brevo_api_key)
+                for value in (
+                    self.oauth_google_client_secret,
+                    self.oauth_facebook_client_secret,
+                    self.brevo_api_key,
+                )
                 if value
             )
             if any(
@@ -301,4 +347,10 @@ def get_settings() -> Settings:
     environment = os.getenv("APP_ENV", "development")
     if environment not in {"development", "test", "production"}:
         raise ValueError("APP_ENV must be development, test or production.")
-    return Settings(_env_file=PROJECT_ROOT / f".env.{environment}", app_env=environment)
+    return Settings(
+        _env_file=(
+            PROJECT_ROOT / f".env.{environment}",
+            PROJECT_ROOT / f".env.payments.{environment}",
+        ),
+        app_env=environment,
+    )

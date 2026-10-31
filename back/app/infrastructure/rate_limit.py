@@ -21,7 +21,8 @@ class RedisRateLimiter:
     def __init__(self, settings: Settings) -> None:
         tls_options = (
             {"ssl_cert_reqs": "required", "ssl_check_hostname": True}
-            if settings.redis_url.startswith("rediss://") else {}
+            if settings.redis_url.startswith("rediss://")
+            else {}
         )
         self._client = Redis.from_url(
             settings.redis_url,

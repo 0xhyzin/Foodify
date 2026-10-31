@@ -1,0 +1,82 @@
+[
+  {
+    "code": "burger",
+    "name": "برجر",
+    "artwork": "burger"
+  },
+  {
+    "code": "pizza",
+    "name": "بيتزا",
+    "artwork": "pizza"
+  },
+  {
+    "code": "chicken",
+    "name": "فراخ",
+    "artwork": "chicken"
+  },
+  {
+    "code": "shawarma",
+    "name": "شاورما",
+    "artwork": "wrap"
+  },
+  {
+    "code": "egyptian",
+    "name": "أكل مصري",
+    "artwork": "bowl"
+  },
+  {
+    "code": "grill",
+    "name": "مشويات",
+    "artwork": "grill"
+  },
+  {
+    "code": "cake",
+    "name": "كيك",
+    "artwork": "cake"
+  },
+  {
+    "code": "oriental",
+    "name": "حلويات شرقية",
+    "artwork": "cake"
+  },
+  {
+    "code": "bakery",
+    "name": "مخبوزات",
+    "artwork": "donut"
+  },
+  {
+    "code": "donuts",
+    "name": "دونات",
+    "artwork": "donut"
+  },
+  {
+    "code": "coffee",
+    "name": "قهوة",
+    "artwork": "coffee"
+  },
+  {
+    "code": "basics",
+    "name": "أساسيات البيت",
+    "artwork": "grocery"
+  },
+  {
+    "code": "dairy",
+    "name": "ألبان",
+    "artwork": "grocery"
+  },
+  {
+    "code": "produce",
+    "name": "خضار وفاكهة",
+    "artwork": "grocery"
+  },
+  {
+    "code": "drinks",
+    "name": "مشروبات",
+    "artwork": "grocery"
+  },
+  {
+    "code": "household",
+    "name": "احتياجات البيت",
+    "artwork": "grocery"
+  }
+]

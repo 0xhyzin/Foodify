@@ -3,7 +3,8 @@ name: foodify-development
 
 x-application: &application
   build: .
-  env_file: .env.development
+  env_file:
+    - .env.development
   environment:
     APP_ENV: development
     # The API needs its restricted DATABASE_URL, never MySQL root credentials.
@@ -34,6 +35,12 @@ x-application: &application
 services:
   api:
     <<: *application
+    # Provider credentials are injected into the API only, never the email worker.
+    env_file:
+      - path: .env.development
+        required: true
+      - path: .env.payments.development
+        required: false
     command: ["python", "run.py", "--env", "development", "--host", "0.0.0.0"]
     ports:
       - "127.0.0.1:8000:8000"

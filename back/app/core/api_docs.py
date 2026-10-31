@@ -9,7 +9,10 @@ from fastapi.responses import FileResponse, HTMLResponse
 
 BEARER_SCHEME_NAME = "BearerAuth"
 BEARER_DESCRIPTION = "JWT access token."
-API_DESCRIPTION = "واجهة Foodify لحساب العميل والعناوين والجلسات."
+API_DESCRIPTION = (
+    "واجهات الحسابات والعناوين والمتاجر والسلال والطلبات. "
+    "تدفقات Paymob تتطلب إعداد مفاتيح الحساب ووسائل الدفع في بيئة التشغيل."
+)
 
 # The display plugin uses the component API of this pinned Swagger UI version.
 _SWAGGER_UI_VERSION = "5.34.0"

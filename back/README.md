@@ -1,10 +1,14 @@
 # Foodify API
 
-باك إند FastAPI لتطبيق توصيل الطعام والبقالة. المرحلة الحالية تنفذ حساب العميل فقط: التسجيل والدخول، تأكيد البريد، استرجاع كلمة المرور، جلسات JWT، تسجيل Google وFacebook، رقم الهاتف وعناوين التوصيل.
+باك إند FastAPI لتطبيق توصيل الطعام والبقالة. Sprint 1 ينفذ حساب العميل: التسجيل والدخول، تأكيد البريد، استرجاع كلمة المرور، جلسات JWT، تسجيل Google وFacebook، رقم الهاتف وعناوين التوصيل.
 
 المشروع مقسم حسب الكيان ثم العملية: كل وظيفة مثل تسجيل الدخول لها فولدر مستقل داخل `app/users/` يحتوي `dto.py` و`interfaces.py` و`service.py` و`dependencies.py` و`router.py`. داخله معمارية ثلاث طبقات مبسطة: `router → service → repository`، مع واجهات تفصل الاعتمادات وDependency Injection لكل عملية. الـ repositories وأجزاء الجلسات والبريد المشتركة لها ملفات مستقلة داخل `app/users/shared/`، وصيغة الأخطاء موحدة. قاعدة البيانات MySQL، ومحددات المحاولات مشتركة عبر Redis، والبريد يرسل من worker مستقل عبر transactional outbox مشفر.
 
-إعداد Render المجاني للـ API مع MySQL وValkey على Aiven وبريد Brevo وربط Vercel موضح في [دليل النشر](../docs/DEPLOYMENT.md). ملفات البيئة المحلية الحالية لم تتغير. `EMBEDDED_EMAIL_WORKER=true` يشغل نفس معالج outbox بجانب API لتوفير استضافة منفصلة، و`EMAIL_PROVIDER=brevo` يختار HTTPS بدل SMTP. `python -m scripts.release` ينفذ migrations بحساب مخصص ثم يعمل seed للأدوار بحساب التطبيق المحدود.
+إعداد FastAPI Cloud المجاني للـ API مع MySQL وValkey على Aiven وبريد Mailjet وربط Vercel موضح في [دليل النشر](../docs/DEPLOYMENT.md). `app/hosted.py` هو مدخل الاستضافة، و`run.py` يظل لتشغيل التطوير المحلي. `EMBEDDED_EMAIL_WORKER=true` يشغل معالج outbox ضمن دورة حياة التطبيق، وإعداد النشر يستخدم `EMAIL_PROVIDER=smtp` للاتصال بـ Mailjet عبر TLS على المنفذ 587، مع API Key كاسم مستخدم وSecret Key ككلمة مرور. `python -m scripts.release` ينفذ migrations بحساب مخصص ثم يعمل seed للأدوار بحساب التطبيق المحدود.
+
+## Sprint 2: المطاعم والسلة والطلبات
+
+تم تنفيذ Sprint 2 ومراجعته في [شرح السبرنت الكامل](README_SPRINT_2.md)، مع فهرس الملفات في [SPRINT_2_FILES.md](docs/SPRINT_2_FILES.md) وتقرير عيوب التسليم الأصلي في [SPRINT_2_REVIEW.md](docs/SPRINT_2_REVIEW.md). التنفيذ يتضمن واجهة Marketplace، سلالًا مستقلة لكل متجر، الطلبات والتتبع، Paymob Hosted Checkout، وتحويل InstaPay بمراجعة موظف. كتالوج المتاجر والمنتجات محفوظ في MySQL وتقرأه الواجهة عبر API. لم تُنشر هذه التعديلات أو تُطبق migrations على قاعدة مستضافة بعد.
 
 ## نقطة البداية والنسخة القديمة
 
@@ -17,6 +21,7 @@
 | الملف | المحتوى |
 | --- | --- |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | تقسيم الملفات، حدود الطبقات، ERD، الـ bridges وقواعد منع التكرار. |
+| [DATABASE.md](docs/DATABASE.md) و[database-schema.sql](docs/database-schema.sql) | ERD كامل ومخطط MySQL المطابق للـ migration الحالية. |
 | [FUNCTIONS.md](docs/FUNCTIONS.md) | كل endpoint، الدالة التي يناديها، الجداول المتأثرة ومسار التنفيذ. |
 | [SECURITY.md](docs/SECURITY.md) | ضوابط الأمان وربطها بـ OWASP Top 10:2025 ومسؤوليات النشر. |
 | [OAUTH.md](docs/OAUTH.md) | إعداد Google/Meta والتحقق من provider identity وتفاصيل flow الربط. |
@@ -248,7 +253,7 @@ Google يتحقق من ID token وissuer/audience/nonce، وFacebook يتحقق 
 
 ## واجهة React
 
-واجهة حساب العميل موجودة في [`../front/`](../front/README.md)، منظمة حسب الـ feature بطبقات domain/application/infrastructure/presentation. وضع التطوير يربط API على 8000 عبر HTTP repositories، مع وضع `demo` اختياري للمعاينة.
+واجهة حساب العميل وMarketplace موجودتان في [`../front/`](../front/README.md)، منظمتان حسب الـ feature بطبقات domain/application/infrastructure/presentation. وضع التطوير يربط الواجهة بالـ API على 8000 عبر HTTP repositories؛ التشغيل الحالي لا يوفر وضع Demo بديلًا.
 
 ```bash
 cd ../front

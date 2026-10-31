@@ -1,18 +1,23 @@
 """Application composition. Run with python run.py --env development."""
 
-import logging
 import asyncio
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.cart.router import router as cart_router
+from app.checkout.router import router as checkout_router
 from app.core.api_docs import API_DESCRIPTION, configure_swagger_docs
 from app.core.config import get_settings
 from app.core.middleware import JsonTrustedHostMiddleware, SecurityMiddleware
 from app.dependencies import get_rate_limiter, limit_api_requests
 from app.infrastructure.database import check_database_readiness, get_engine
 from app.infrastructure.embedded_worker import EmbeddedEmailWorker
+from app.orders.router import router as orders_router
+from app.payments.router import router as payments_router
+from app.restaurants.router import router as restaurants_router
 from app.shared.dto import ErrorResponse
 from app.shared.errors import AppError, register_exception_handlers
 from app.users.router import auth_router
@@ -61,13 +66,24 @@ def create_app() -> FastAPI:
         allow_origins=settings.browser_allowed_origins,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
-        allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-Foodify-Client"],
+        allow_headers=[
+            "Authorization",
+            "Content-Type",
+            "X-Request-ID",
+            "X-Foodify-Client",
+            "Idempotency-Key",
+        ],
         expose_headers=["X-Request-ID", "Retry-After"],
     )
     app.add_middleware(SecurityMiddleware, settings=settings)
     api = APIRouter(prefix="/api/v1", dependencies=[Depends(limit_api_requests)])
     api.include_router(auth_router)
     api.include_router(users_router)
+    api.include_router(restaurants_router)
+    api.include_router(cart_router)
+    api.include_router(orders_router)
+    api.include_router(checkout_router)
+    api.include_router(payments_router)
     app.include_router(api)
 
     @app.get("/health/live", tags=["Health"])

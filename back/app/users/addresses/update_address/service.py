@@ -19,7 +19,7 @@ class UpdateAddressService:
         self, user_id: str, address_id: str, payload: UpdateAddressRequest
     ) -> UpdateAddressResponse:
         user = require_active_user(self.users, user_id, for_update=True)
-        address = require_owned_address(self.addresses, address_id, user_id)
+        address = require_owned_address(self.addresses, address_id, user_id, for_update=True)
         # The request forbids extra fields, so identifiers cannot be mass assigned.
         for field, value in payload.model_dump().items():
             setattr(address, field, value)

@@ -8,11 +8,11 @@
 | --- | --- | --- |
 | [main.tsx](../src/main.tsx) | bootstrap على مستوى الملف | تحميل الخط وCSS، ثم `normalizeExternalLinks`، ثم `createRoot(...).render` تحت `StrictMode` |
 | [app.tsx](../src/app/app.tsx) | `App()` | تركيب ErrorBoundary وServicesProvider وToastProvider وAppRouter؛ SessionProvider داخل فرع الحساب في router |
-| [services.ts](../src/app/services.ts) | `createAppServices(): AppServices` | اختيار api أو demo ثم تركيب use cases فوق repository المناسب |
+| [services.ts](../src/app/services.ts) | `createAppServices(): AppServices` | تركيب use cases فوق مستودعات HTTP؛ لا يوجد اختيار لمصدر Demo |
 | نفس الملف | `createApiServices()` | إنشاء مدير الجلسة وHTTP client وOAuth flow ومستودعات HTTP، ثم إرجاع الخدمات |
 | نفس الملف | `AppServices` | عقد الخدمة: `auth` و`account` و`demo`؛ ليس API response |
-| نفس الملف | `DemoControls` | عقد أدوات معاينة الرموز وإعادة البيانات التجريبية |
-| [config.ts](../src/app/config.ts) | `appConfig` | كائن ثابت يحدد البيئة ومصدر البيانات وأصل API، ويرفض مصدرًا غير api/demo |
+| نفس الملف | `DemoControls` | واجهة توافق قديمة؛ التنفيذ الحالي لا يعرض بيانات محاكاة ولا يغيّر مصدر البيانات |
+| [config.ts](../src/app/config.ts) | `appConfig` | كائن ثابت يحدد البيئة وأصل API، ويرفض أي مصدر بيانات غير `api` |
 | [external-links.ts](../src/app/bootstrap/external-links.ts) | `normalizeExternalLinks(): void` | تحويل روابط البريد وOAuth ذات المسار الفعلي والـ fragment إلى مسار HashRouter قبل بدء React |
 | [vite.config.ts](../vite.config.ts) | callback الخاص بـ `defineConfig` | قراءة mode والبيئة وضبط React plugin وalias والمنفذ والبناء |
 | نفس الملف | `transformIndexHtml()` | إضافة CSP إلى HTML أثناء build وفق مصدر البيانات وأصل API |
@@ -329,22 +329,9 @@ AddressEditorPage
 
 الـ input يعبر حدودًا واضحة. الـ page لا تبني URL الخاص بـ API، والـ use case لا يعرف fetch، وmapper لا ينفذ التنقل.
 
-## واجهة المطاعم الديمو
+## Marketplace والكتالوج
 
-راجع [CATALOG.md](CATALOG.md) لهيكل هذه الوظيفة ورحلة استخدامها. المصدر مستقل عن خدمات الحساب والباك.
-
-| الملف | المكون أو الدالة | المسؤولية |
-| --- | --- | --- |
-| [catalog-layout.tsx](../src/app/layouts/catalog-layout.tsx) | `CatalogLayout` | إطار صفحات المطاعم العام والتنقل ونافذة شرح الديمو |
-| [restaurants.js](../src/features/catalog/data/restaurants.js) | `demoRestaurants / restaurantCategories` | ٤ مطاعم، ثلاث وجبات لكل مطعم، وتعريف التصنيفات |
-| [filter-restaurants.ts](../src/features/catalog/application/filter-restaurants.ts) | `filterRestaurants / normalizeSearch` | ترشيح المطاعم محليًا بحسب التصنيف والبحث العربي؛ تطبيع النص helper داخلي |
-| [restaurants-page.tsx](../src/features/catalog/presentation/pages/restaurants-page.tsx) | `RestaurantsPage` | حالة البحث والتصنيف وعرض النتائج وحالة البحث الفارغ |
-| [restaurant-page.tsx](../src/features/catalog/presentation/pages/restaurant-page.tsx) | `RestaurantPage` | مطابقة معرف المطعم في الرابط وعرض قائمته واختيار تفاصيل الوجبة |
-| [catalog-hero.tsx](../src/features/catalog/presentation/components/catalog-hero.tsx) | `CatalogHero / browseRestaurants` | مقدمة الرئيسية والتمرير مع نقل التركيز للقائمة |
-| [catalog-filters.tsx](../src/features/catalog/presentation/components/catalog-filters.tsx) | `CatalogFilters` | حقل البحث وأزرار التصنيفات ومسح البحث مع استعادة التركيز |
-| [restaurant-card.tsx](../src/features/catalog/presentation/components/restaurant-card.tsx) | `RestaurantCard` | بطاقة تربط بقائمة المطعم |
-| [restaurant-facts.tsx](../src/features/catalog/presentation/components/restaurant-facts.tsx) | `RestaurantFacts` | التقييم ووقت ورسوم التوصيل التجريبية |
-| [food-illustration.tsx](../src/features/catalog/presentation/components/food-illustration.tsx) | `FoodIllustration` | رسومات SVG محلية حسب نوع الأكل |
-| [meal-card.tsx](../src/features/catalog/presentation/components/meal-card.tsx) | `MealCard` | بيانات الوجبة وزر يحدد الوجبة لعرض تفاصيلها |
-| [meal-details.tsx](../src/features/catalog/presentation/components/meal-details.tsx) | `MealDetails` | نافذة المكونات والسعر التجريبي |
-| [formatters.ts](../src/features/catalog/presentation/formatters.ts) | `formatPrice / formatNumber` | تنسيق الأسعار بالجنيه والأرقام للعربية المصرية |
+كتالوج المطاعم والمنتجات يُقرأ من FastAPI/MySQL عبر `HttpCatalogRepository`.
+راجع [شرح تدفق الكتالوج](CATALOG.md) و[شرح Sprint 2](../README_SPRINT_2.md) لمسارات
+الصفحات والسلة والطلبات والدفع. مكونات الواجهة لا تستورد ملف seed ولا تنشئ
+قائمة متاجر محلية.

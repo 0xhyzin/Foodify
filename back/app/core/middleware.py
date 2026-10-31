@@ -79,7 +79,12 @@ class SecurityMiddleware:
                     "/docs/oauth2-redirect",
                 }:
                     headers["Content-Security-Policy"] = (
-                        "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https://fastapi.tiangolo.com; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'none'"
+                        "default-src 'self'; base-uri 'self'; object-src 'none'; "
+                        "form-action 'self'; frame-ancestors 'none'; "
+                        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                        "img-src 'self' data: https://fastapi.tiangolo.com; "
+                        "font-src 'self' https://fonts.gstatic.com"
                     )
                 else:
                     headers["Content-Security-Policy"] = (

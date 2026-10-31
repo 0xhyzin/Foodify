@@ -12,8 +12,10 @@ def require_active_user(users: UserRepository, user_id: str, for_update: bool = 
     return user
 
 
-def require_owned_address(addresses: AddressRepository, address_id: str, user_id: str) -> Address:
-    address = addresses.get_owned(address_id, user_id)
+def require_owned_address(
+    addresses: AddressRepository, address_id: str, user_id: str, for_update: bool = False
+) -> Address:
+    address = addresses.get_owned(address_id, user_id, for_update=for_update)
     if address is None:
         raise AppError("address_not_found", "Address was not found.", 404)
     return address

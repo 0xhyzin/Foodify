@@ -17,7 +17,7 @@ class SetDefaultAddressService:
 
     def execute(self, user_id: str, address_id: str) -> SetDefaultAddressResponse:
         user = require_active_user(self.users, user_id, for_update=True)
-        address = require_owned_address(self.addresses, address_id, user_id)
+        address = require_owned_address(self.addresses, address_id, user_id, for_update=True)
         user.default_address_id = address.id
         self.uow.commit()
         return SetDefaultAddressResponse.model_validate(user_response(user))

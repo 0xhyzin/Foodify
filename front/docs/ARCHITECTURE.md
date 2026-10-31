@@ -2,7 +2,7 @@
 
 الواجهة تطبق Clean Architecture بشكل مبسّط، مع تنظيم حسب الـ feature وبناء العرض من مكونات صغيرة. التركيز على حساب العميل في هذه المرحلة؛ أغلب العمليات لها DTO وuse case مستقل، والصفحات لا تعرف كيفية تخزين البيانات أو إرسالها.
 
-أضيفت واجهة `catalog` مستقلة للعرض المحلي: نماذج في `domain`، وبيانات في ملف `data/restaurants.js`، ودالة ترشيح في `application`، وصفحات ومكونات في `presentation`. لا تحتوي HTTP repositories أو ربطًا بقاعدة البيانات؛ تفاصيلها في [CATALOG.md](CATALOG.md). `CatalogLayout` خارج `SessionProvider`، الذي أصبح داخل فرع التسجيل والحساب في router، لمنع بدء استعادة الجلسة أثناء تصفح المطاعم.
+ميزة `marketplace` مستقلة وتحتوي نماذج المجال وعقود المستودعات وحالات الاستخدام ومحوّلات HTTP وصفحات ومكونات العرض. بيانات المطاعم والمنتجات لا تأتي من ملف داخل React؛ يقرأها `HttpCatalogRepository` من API بعد حفظها في MySQL. تفاصيل المسار في [CATALOG.md](CATALOG.md). `MarketplaceLayout` يحيط بصفحات التسوق، والجلسة مشتركة مع صفحات الحساب.
 
 الشرح الشامل للواجهة في [README](../README.md)، ومسؤولية الدوال والمكونات بالتفصيل في [FUNCTIONS.md](FUNCTIONS.md). أغلب العمليات لها use case مستقل؛ `completeProviderSignIn` موصلة حاليًا مباشرة من composition root إلى repository.
 
@@ -32,7 +32,7 @@ Shared: مكونات العرض العامة، إدارة أخطاء موحدة�
 | --- | --- | --- |
 | `domain` | تعريف نماذج العمل، واجهات الاعتماد، وقواعد التحقق | `UserProfile`, `Address`, `AuthRepository`, `AccountRepository` |
 | `application` | تنفيذ عملية واحدة، التحقق من الـ input، والتفويض للـ repository | الدخول، إنشاء حساب، حفظ عنوان |
-| `infrastructure` | تنفيذ التخزين والتعامل مع مصدر البيانات | `FetchHttpClient`, مستودعات HTTP والمحاكاة |
+| `infrastructure` | تنفيذ الاتصال بالخدمات | `FetchHttpClient` ومستودعات HTTP؛ ملفات محاكاة الحساب القديمة غير مركبة في التشغيل الحالي |
 | `presentation` | النماذج والتنقل والعرض وأخطاء الحقول | صفحات التسجيل والحساب |
 | `app` | تركيب الاعتمادات والـ providers والمسارات وإعداد البيئة | `AppServices`, `ServicesProvider`, Router |
 | `shared` | أدوات مستقلة تستخدمها أكثر من feature | `Button`, `Field`, `Dialog`, `AppError`, `useAction` |
@@ -118,7 +118,7 @@ src/features/
   → useAction.run() يمنع الإرسال المتزامن ويدير pending/errors
   → use case حفظ العنوان يتحقق من DTO ويطبّع الحقول
   → AccountRepository.saveAddress(input, id?)
-  → HttpAccountRepository يرسل DTO للـ API (أو DemoAccountRepository في وضع demo)
+  → HttpAccountRepository يرسل DTO إلى API
   → يعود نموذج Address
   → الصفحة تحدّث العرض والتنقل والإشعار
 ```
@@ -168,6 +168,6 @@ src/features/
 
 ## إعدادات البيئات والجودة
 
-`development` و`test` و`production` مراحل تشغيل وبناء منفصلة باستخدام Vite modes. development/test يستخدمان API عند ضبط `VITE_DATA_SOURCE=api`، بينما build production الافتراضي آمن كمحاكاة إلى أن يُضبط API HTTPS صراحة. ملفات `.env.*.example` أمثلة لقيم عامة؛ قيم `VITE_*` مرئية في المتصفح.
+`development` و`test` و`production` مراحل تشغيل وبناء منفصلة باستخدام Vite modes. كل build يقرأ من FastAPI؛ إعداد Vite يرفض `VITE_DATA_SOURCE` غير `api`. ملفات `.env.*.example` أمثلة لقيم عامة؛ قيم `VITE_*` مرئية في المتصفح.
 
 تُستخدم TypeScript لفحص العقود وبناء Vite لإنتاج ملفات `dist/`. أوامر `build:test` و`dev:test` تختار بيئة test؛ لا تشغل اختبارات. لم تتم إضافة أو تشغيل unit/e2e tests بطلب المشروع، ويتولى فريق الاختبارات ذلك لاحقًا.

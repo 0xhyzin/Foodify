@@ -60,3 +60,8 @@ PY
 ## الأخطاء والأمثلة
 
 الـ saved responses أمثلة للعرض وليست نتائج تنفيذ فعلي. راجع [دليل الدوال](../docs/FUNCTIONS.md) لتفاصيل كل مسار. `422` يعني مراجعة حقول body، و`401` يعني حاجة لمصادقة صالحة، و`403` بريد غير مؤكد أو permission ناقصة، و`429` يتطلب الانتظار وفق `Retry-After`، و`503` يعني مراجعة الخدمات والإعدادات. لا يشغل استيراد الـcollection أي request تلقائيًا.
+
+
+## Sprint 2
+
+استورد [Foodify.Sprint2.postman_collection.json](Foodify.Sprint2.postman_collection.json) لطلبات المطاعم وإنشاء السلة وإدارتها والعناوين والطلبات اليدوية. لا توجد scripts أو tests. إعدادات وصلاحيات Checkout والمحاكاة موضحة في [SPRINT_2.md](../docs/SPRINT_2.md).

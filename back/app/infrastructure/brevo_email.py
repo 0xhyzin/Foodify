@@ -30,7 +30,11 @@ class BrevoEmailSender:
                 follow_redirects=False,
             )
             if response.status_code != 201:
-                raise AppError("email_unavailable", "Email delivery is temporarily unavailable.", 503)
+                raise AppError(
+                    "email_unavailable", "Email delivery is temporarily unavailable.", 503
+                )
         except httpx.HTTPError as exc:
             # Provider bodies and request contents can contain private data.
-            raise AppError("email_unavailable", "Email delivery is temporarily unavailable.", 503) from exc
+            raise AppError(
+                "email_unavailable", "Email delivery is temporarily unavailable.", 503
+            ) from exc

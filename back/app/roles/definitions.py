@@ -1,7 +1,7 @@
 """Idempotent seed data; permissions are normalized in role_permissions.
 
-The order and delivery permissions reserve vocabulary for later features.
-They do not expose order, delivery, or staff endpoints in this release.
+Sprint 2 uses order creation, own-history, and operations-management permissions.
+Delivery assignment and staff-management vocabulary is reserved for later features.
 """
 
 from app.roles.enums import RoleType
@@ -25,6 +25,7 @@ PERMISSION_NAMES: dict[str, str] = {
     "orders:read": "Read operational orders",
     "orders:prepare": "Prepare orders",
     "orders:manage": "Manage operational orders",
+    "payments:review": "Verify received manual transfers against bank records",
     "deliveries:assign": "Assign deliveries",
     "staff:read": "Read staff directory",
     "staff:manage": "Create and manage staff accounts",
@@ -59,6 +60,7 @@ ROLE_PERMISSIONS: dict[RoleType, frozenset[str]] = {
     | {
         "orders:read",
         "orders:manage",
+        "payments:review",
         "deliveries:assign",
         "staff:read",
     },

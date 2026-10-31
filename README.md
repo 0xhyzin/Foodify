@@ -2,9 +2,9 @@
 
 Foodify هو نظام توصيل أكل. المشروع متقسم إلى واجهة React مستقلة وباك إند FastAPI مستقل، بحيث كل جزء يقدر يتطور ويتنشر بشكل منفصل.
 
-الرئيسية الآن تعرض ٤ مطاعم ديمو، وكل مطعم فيه ٣ أكلات، مع بحث وتصنيف وتفاصيل المكونات والأسعار. بياناتها في [ملف JavaScript مستقل](front/src/features/catalog/data/restaurants.js)، وتعمل دون الباك أو تسجيل دخول. [شرح واجهة المطاعم وتنظيم مكوناتها](front/docs/CATALOG.md).
+الواجهة تعرض Marketplace عربيًا للمطاعم والحلويات والقهوة والبقالة، ببحث وفئات وفلاتر ومفضلة. مصدر بيانات المتاجر والمنتجات هو MySQL عبر FastAPI؛ والواجهة لا تحتوي كتالوجًا محليًا بديلًا. ملف seed الخاص بالباك يجهز عينة من 8 متاجر و24 منتجًا، لكن لم تتم مزامنتها مع قاعدة الاستضافة بعد بسبب تعذر حل عنوان MySQL الحالي. تفاصيل التنفيذ في [شرح الواجهة للسبرنت الثاني](front/README_SPRINT_2.md) و[شرح الباك والربط للسبرنت الثاني](back/README_SPRINT_2.md).
 
-الواجهة منشورة على [Vercel](https://foodify-flax.vercel.app)، والكود في [0xhyzin/Foodify](https://github.com/0xhyzin/Foodify). الخطة المجانية للباك هي FastAPI على Render، وMySQL وValkey على Aiven، ورسائل البريد عبر Brevo. الباك ما زال يحتاج إعداد حسابات الخدمات قبل نشره؛ تفاصيل الإعداد في [دليل النشر](docs/DEPLOYMENT.md). قاعدة البيانات تظل MySQL.
+الواجهة منشورة على [Vercel](https://foodify-flax.vercel.app)، والباك على [FastAPI Cloud](https://foodify-api.fastapicloud.dev)، وقاعدة MySQL وValkey على Aiven، ورسائل التأكيد واسترجاع كلمة المرور عبر Mailjet SMTP. حالة الاتصال الحالية وقائمة خطوات النشر والتحقق موجودة في [دليل النشر](docs/DEPLOYMENT.md). قاعدة البيانات MySQL.
 
 ## شكل المشروع
 
@@ -27,7 +27,8 @@ Foodify/
     │   ├── shared/               # common components and domain errors
     │   ├── features/
     │   │   ├── auth/             # login, register, email, password, OAuth
-    │   │   └── account/          # profile and addresses
+    │   │   ├── account/          # profile and addresses
+    │   │   └── marketplace/      # catalog, carts, checkout, payments, orders
     │   └── infrastructure/       # HTTP client and browser session
     └── .env.development.example
 ~~~
@@ -62,7 +63,7 @@ FastAPI API
 
 الـ domain لا يعرف React أو fetch أو FastAPI. الـ application يعرف المطلوب من خلال interface فقط، أما التنفيذ الحقيقي فيكون داخل infrastructure. هذا يمنع وضع كل الوظائف في ملف واحد ويجعل تغيير API أو إضافة مصدر بيانات آخر أسهل.
 
-الملف [front/src/app/services.ts](front/src/app/services.ts) هو composition root. فيه يتم اختيار implementation الحقيقي للـ API أو implementation تجريبي عند تشغيل VITE_DATA_SOURCE=demo.
+الملف [front/src/app/services.ts](front/src/app/services.ts) هو composition root؛ يركب مستودعات HTTP للكتالوج والحساب والطلبات. يجب ضبط `VITE_DATA_SOURCE=api`، وأي قيمة أخرى يرفضها التطبيق.
 
 ## تشغيل المشروع
 
@@ -104,7 +105,7 @@ VITE_DATA_SOURCE=api
 VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
 ~~~
 
-للتشغيل بدون باك إند يمكن استخدام VITE_DATA_SOURCE=demo، لكن التشغيل الفعلي للتكامل يحتاج api.
+الواجهة تحتاج الباك إند حتى تعرض البيانات الحقيقية؛ لا يوجد وضع Demo بديل في التشغيل الحالي.
 
 ## مسار التكامل الكامل
 
@@ -310,7 +311,7 @@ snake_case من API  ↔  camelCase داخل React/domain
 
 ## المشاكل التي ظهرت وتم إصلاحها
 
-1. الفرونت كان يعمل بـ demo data فقط؛ تم إضافة config يسمح بالتبديل بين api و demo، مع جعل api هو الوضع المطلوب للتكامل.
+1. نُقلت بيانات المطاعم من ملفات الواجهة إلى قاعدة MySQL، وأصبح الفرونت يستخدم API فقط من خلال HTTP repositories.
 2. كانت طبقة HTTP و browser session و OAuth ناقصة؛ تم فصلها إلى ملفات infrastructure مستقلة.
 3. ظهرت أخطاء TypeScript بسبب اختلاف DTO بين الباك إند والفرونت؛ تم إضافة mappers للـ snake_case/camelCase.
 4. روابط البريد كانت تشير إلى 3000؛ تم توحيدها على 5173 في development.

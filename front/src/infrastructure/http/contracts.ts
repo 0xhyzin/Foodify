@@ -12,12 +12,13 @@ export interface BackendUserDto {
 }
 export interface BrowserSessionDto {
   access_token: string;
-  token_type: 'bearer';
+  token_type: "bearer";
   expires_in: number;
   user: BackendUserDto;
 }
 export interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
+  idempotencyKey?: string;
+  method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
   body?: unknown;
   authenticated?: boolean;
   signal?: AbortSignal;

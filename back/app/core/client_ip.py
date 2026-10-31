@@ -11,6 +11,7 @@ from app.core.config import get_settings
 
 PROXY_SIGNATURE_MAX_AGE_SECONDS = 120
 
+
 def get_client_ip(request: Request) -> str:
     fallback = request.client.host if request.client else "unknown"
     secret = get_settings().frontend_proxy_secret

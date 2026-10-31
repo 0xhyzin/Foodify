@@ -95,7 +95,8 @@ class Address(Base):
             "longitude IS NULL OR longitude BETWEEN -180 AND 180", name="ck_address_longitude"
         ),
         CheckConstraint(
-            "(latitude IS NULL AND longitude IS NULL) OR (latitude IS NOT NULL AND longitude IS NOT NULL)",
+            "(latitude IS NULL AND longitude IS NULL) OR "
+            "(latitude IS NOT NULL AND longitude IS NOT NULL)",
             name="ck_address_coordinates",
         ),
         Index("ix_addresses_user_created", "user_id", "created_at"),
@@ -200,3 +201,7 @@ class EmailOutbox(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     next_attempt_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     sent_at: Mapped[datetime | None] = mapped_column(DateTime)
+
+
+# Register Sprint 2 tables in the shared SQLAlchemy metadata.
+from app.ordering import models as _ordering_models  # noqa: E402,F401

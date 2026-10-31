@@ -1,8 +1,8 @@
 """MySQL SQLAlchemy connection lifecycle; schema changes belong to Alembic."""
 
+import ssl
 from collections.abc import Generator
 from functools import lru_cache
-import ssl
 
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
@@ -26,8 +26,10 @@ def get_engine() -> Engine:
 def create_database_engine(database_url: str) -> Engine:
     settings = get_settings()
     connect_args = {
-        "charset": "utf8mb4", "connect_timeout": 10,
-        "read_timeout": 15, "write_timeout": 15,
+        "charset": "utf8mb4",
+        "connect_timeout": 10,
+        "read_timeout": 15,
+        "write_timeout": 15,
         "init_command": "SET SESSION time_zone='+00:00'",
     }
     if settings.database_ssl_ca or settings.database_ssl_ca_pem:

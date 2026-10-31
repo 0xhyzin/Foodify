@@ -18,6 +18,9 @@ include = ["app*"]
 [tool.setuptools.package-data]
 "app.core" = ["swagger_ui.js"]
 
+[tool.fastapi]
+entrypoint = "app.hosted:app"
+
 [tool.ruff]
 target-version = "py312"
 line-length = 100

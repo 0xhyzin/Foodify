@@ -25,7 +25,7 @@ class AddAddressService:
     def execute(self, user_id: str, payload: AddAddressRequest) -> AddAddressResponse:
         # Lock the parent before address mutations to serialize the limit and default.
         user = require_active_user(self.users, user_id, for_update=True)
-        if len(self.addresses.list_for_user(user_id)) >= MAX_ADDRESSES_PER_USER:
+        if len(self.addresses.list_for_user(user_id, for_update=True)) >= MAX_ADDRESSES_PER_USER:
             raise AppError(
                 "address_limit_reached",
                 f"A profile can have up to {MAX_ADDRESSES_PER_USER} addresses.",

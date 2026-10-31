@@ -1,0 +1,696 @@
+{
+  "info": {
+    "name": "Foodify — Sprint 2 Marketplace & Payments",
+    "description": "Manual collection. Login using the existing account collection, set access_token, then read IDs, cart revision and total from API responses. One cart/order per merchant. Do not put provider secrets here. Paymob callbacks must come from Paymob with a real HMAC; no fake success callback is supplied.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "restaurant_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "menu_item_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cart_item_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "address_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "order_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "checkout_key",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cart_revision",
+      "value": "0",
+      "type": "string"
+    },
+    {
+      "key": "expected_total",
+      "value": "0.00",
+      "type": "string"
+    },
+    {
+      "key": "payment_method",
+      "value": "cash",
+      "type": "string"
+    },
+    {
+      "key": "search",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "transfer_reference",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "verified_transfer_reference",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Public catalog",
+      "item": [
+        {
+          "name": "Browse stores — filters and pagination",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/restaurants?sort=rating&limit=24&offset=0",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Grocery stores",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/restaurants?kind=grocery&limit=24",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Search products / stores",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/restaurants?search={{search}}",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Browse categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/catalog/categories",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Store details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/restaurants/{{restaurant_id}}",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Store menu",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/restaurants/{{restaurant_id}}/menu?limit=100",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Favorites",
+      "item": [
+        {
+          "name": "My favorites",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/users/me/favorites",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد."
+          }
+        },
+        {
+          "name": "Save favorite",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/users/me/favorites/{{restaurant_id}}",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"favorite\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remove favorite",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/users/me/favorites/{{restaurant_id}}",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"favorite\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Independent carts",
+      "item": [
+        {
+          "name": "All my non-empty carts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد."
+          }
+        },
+        {
+          "name": "Create merchant cart — preserves existing items",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts/{{restaurant_id}}",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد."
+          }
+        },
+        {
+          "name": "Read merchant cart / total / revision",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts/{{restaurant_id}}",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد."
+          }
+        },
+        {
+          "name": "Add product belonging to this merchant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts/{{restaurant_id}}/items",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"menu_item_id\": \"{{menu_item_id}}\",\n  \"quantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Set quantity",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts/{{restaurant_id}}/items/{{cart_item_id}}",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remove line",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts/{{restaurant_id}}/items/{{cart_item_id}}",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد."
+          }
+        },
+        {
+          "name": "Clear this merchant only",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/carts/{{restaurant_id}}",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Delivery addresses — existing account API",
+      "item": [
+        {
+          "name": "My addresses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/users/me/addresses",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد."
+          }
+        },
+        {
+          "name": "Add address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/users/me/addresses",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Home\",\n  \"recipient_name\": \"Demo Customer\",\n  \"phone\": \"+201012345678\",\n  \"country_code\": \"EG\",\n  \"city\": \"Cairo\",\n  \"area\": \"Nasr City\",\n  \"street\": \"Demo Street\",\n  \"building\": \"24\",\n  \"floor\": \"3\",\n  \"apartment\": \"12\",\n  \"delivery_notes\": \"Demo only\",\n  \"latitude\": null,\n  \"longitude\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Set default address",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/users/me/default-address/{{address_id}}",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد."
+          }
+        },
+        {
+          "name": "Delete address",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/users/me/addresses/{{address_id}}",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Checkout and customer orders",
+      "item": [
+        {
+          "name": "Enabled payment methods",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/payments/methods",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Submit one merchant order — use latest total/revision",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{checkout_key}}"
+              }
+            ],
+            "url": "{{base_url}}/checkout",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurant_id\": \"{{restaurant_id}}\",\n  \"address_id\": \"{{address_id}}\",\n  \"payment_method\": \"{{payment_method}}\",\n  \"expected_total\": \"{{expected_total}}\",\n  \"cart_revision\": {{cart_revision}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Order history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/orders?limit=20&offset=0",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد."
+          }
+        },
+        {
+          "name": "Owned order / tracking / payment status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/orders/{{order_id}}",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد."
+          }
+        },
+        {
+          "name": "Start / reopen hosted Paymob checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/orders/{{order_id}}/payment",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد."
+          }
+        },
+        {
+          "name": "Submit InstaPay reference — does NOT mark paid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/orders/{{order_id}}/transfer-claim",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reference\": \"{{transfer_reference}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Operations — use authorized staff Bearer token",
+      "item": [
+        {
+          "name": "Merchant order list",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/restaurant/orders?restaurant_id={{restaurant_id}}&limit=20&offset=0",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد."
+          }
+        },
+        {
+          "name": "Next fulfillment stage only",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/operations/orders/{{order_id}}/status",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"preparing\",\n  \"note\": \"Preparation started\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Approve transfer after checking bank records",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/operations/orders/{{order_id}}/transfer-review",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"approve\",\n  \"verified_reference\": \"{{verified_transfer_reference}}\",\n  \"note\": \"Received amount checked against bank statement.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Reject transfer claim",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/operations/orders/{{order_id}}/transfer-review",
+            "description": "طلبات يدوية فقط؛ لا توجد scripts للـtests. استخدم IDs من الاستجابات. نفس checkout_key لإعادة نفس العملية؛ UUID جديد لطلب جديد.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"reject\",\n  \"verified_reference\": \"{{transfer_reference}}\",\n  \"note\": \"Transfer not found in bank statement.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -64,7 +64,7 @@ export default async function handler(request, response) {
   upstreamUrl.search = incoming.searchParams.toString();
   const headers = new Headers({ Accept: 'application/json' });
   // Never copy arbitrary proxy headers or a browser-supplied upstream hostname.
-  for (const name of ['authorization', 'content-type', 'cookie', 'origin', 'x-foodify-client', 'x-request-id']) {
+  for (const name of ['authorization', 'content-type', 'cookie', 'origin', 'x-foodify-client', 'x-request-id', 'idempotency-key']) {
     const value = request.headers[name];
     if (typeof value === 'string') headers.set(name, value);
   }

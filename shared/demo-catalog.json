@@ -1,0 +1,354 @@
+[
+  {
+    "id": "2d260a6a-4e2e-58dd-9a01-7f7deabe618a",
+    "name": "ماكدونالدز",
+    "slug": "mcdonalds",
+    "kind": "restaurant",
+    "category": "برجر ودجاج",
+    "description": "برجر ووجبات دجاج من قائمة ماكدونالدز.",
+    "logo": "/images/marketplace/mcdonalds.svg",
+    "photo": "https://talabat.dhmedia.io/image/global-menu-service/HF_EG/vendor/705044/product/1884499744/a6226ac4-1f48-436e-85ea-ccb73ccc79b3_enhanced.jpg?width=400&height=400&dpi=0.75",
+    "tags": [
+      "burger",
+      "chicken"
+    ],
+    "score": 4.8,
+    "reviews": 128,
+    "minutes": 25,
+    "fee": 20,
+    "meals": [
+      {
+        "id": "5f2fe4ee-84fa-5108-bc21-621d1bdda5e4",
+        "name": "بيج ماك",
+        "category": "burger",
+        "description": "ساندوتش بيج ماك من قائمة ماكدونالدز.",
+        "price": 150,
+        "photo": "https://talabat.dhmedia.io/image/global-menu-service/HF_EG/vendor/705044/product/1884499744/a6226ac4-1f48-436e-85ea-ccb73ccc79b3_enhanced.jpg?width=400&height=400&dpi=0.75"
+      },
+      {
+        "id": "86fd171e-8874-56b6-b138-e1522b0bc599",
+        "name": "ماك تشيكن",
+        "category": "chicken",
+        "description": "ساندوتش ماك تشيكن من قائمة ماكدونالدز.",
+        "price": 150,
+        "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/McChicken638798740360935467.jpg"
+      },
+      {
+        "id": "e8d189dc-a613-57ca-af08-22fb2b646eb3",
+        "name": "وجبة ماك ناجتس ٦ قطع",
+        "category": "chicken",
+        "description": "وجبة ماك ناجتس ٦ قطع، حجم متوسط.",
+        "price": 255,
+        "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/EC8A12AB0B6E97D93F2A3E5B3AA02407"
+      }
+    ]
+  },
+  {
+    "id": "9a2920a3-bc18-5462-9fd2-1ae21fdd936d",
+    "name": "كنتاكي",
+    "slug": "kfc",
+    "kind": "restaurant",
+    "category": "دجاج ووجبات",
+    "description": "ساندوتشات ووجبات دجاج من قائمة KFC.",
+    "logo": "/images/marketplace/kfc.svg",
+    "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/94A575E7C28CD8FD2DE1D63631C94E05",
+    "tags": [
+      "chicken"
+    ],
+    "score": 4.7,
+    "reviews": 216,
+    "minutes": 20,
+    "fee": 0,
+    "meals": [
+      {
+        "id": "7d9f88cb-f20c-525a-a883-84bc2583ec55",
+        "name": "مايتي زنجر",
+        "category": "chicken",
+        "description": "ساندوتش مايتي زنجر من قائمة KFC.",
+        "price": 205,
+        "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/94A575E7C28CD8FD2DE1D63631C94E05"
+      },
+      {
+        "id": "2957365f-1436-5a0e-856e-af1a133f842f",
+        "name": "ريزو",
+        "category": "chicken",
+        "description": "وجبة ريزو بالأرز وصوص KFC.",
+        "price": 109,
+        "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/02AFFA154F87C36CF679528593564A66"
+      },
+      {
+        "id": "42d54764-f559-57bc-b2cf-070b840c2aaf",
+        "name": "تويستر حار",
+        "category": "chicken",
+        "description": "ساندوتش تويستر الحار من قائمة KFC.",
+        "price": 110,
+        "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/96FFA518F02F4C350BC94D34F6152D68"
+      }
+    ]
+  },
+  {
+    "id": "3f43ba42-3795-58cd-abae-dbe2d8dc15d0",
+    "name": "بيتزا هت",
+    "slug": "pizza-hut",
+    "kind": "restaurant",
+    "category": "بيتزا",
+    "description": "بيتزا من الأصناف المعروضة في قائمة Pizza Hut.",
+    "logo": null,
+    "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/BFD9CA679C3524B5B8CAFCE290928F8B",
+    "tags": [
+      "pizza"
+    ],
+    "score": 4.7,
+    "reviews": 96,
+    "minutes": 30,
+    "fee": 25,
+    "meals": [
+      {
+        "id": "3f9a5a98-5227-5364-9c79-d0998e1a8f4f",
+        "name": "بيتزا مارجريتا",
+        "category": "pizza",
+        "description": "بيتزا مارجريتا من قائمة Pizza Hut.",
+        "price": 113,
+        "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/BFD9CA679C3524B5B8CAFCE290928F8B"
+      },
+      {
+        "id": "2295cd5c-8e9d-5799-92c3-8216b804a157",
+        "name": "بيتزا بيبروني كلاسيك",
+        "category": "pizza",
+        "description": "بيتزا بيبروني كلاسيك من القائمة.",
+        "price": 143,
+        "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/B6636CD8799EBAF85E3558C9D7EC075D"
+      },
+      {
+        "id": "33337f51-89d4-5ef9-bc96-86664dca327c",
+        "name": "سوبر سوبريم",
+        "category": "pizza",
+        "description": "بيتزا سوبر سوبريم من القائمة.",
+        "price": 168,
+        "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/949D554C4EBF31FBD649A8352ED97C79"
+      }
+    ]
+  },
+  {
+    "id": "c341fa65-2937-5f6d-a516-0c8bc687bc64",
+    "name": "كشري التحرير",
+    "slug": "koshary-el-tahrir",
+    "kind": "restaurant",
+    "category": "أكل مصري",
+    "description": "أطباق كشري وحلويات من قائمة كشري التحرير.",
+    "logo": null,
+    "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/C67A48169B64466A5390527EF16EB992",
+    "tags": [
+      "egyptian"
+    ],
+    "score": 4.9,
+    "reviews": 204,
+    "minutes": 20,
+    "fee": 15,
+    "meals": [
+      {
+        "id": "d403f970-b933-5ec5-8ba1-fbb8fb3d977f",
+        "name": "طبق التحرير",
+        "category": "egyptian",
+        "description": "طبق كشري التحرير بالحجم العادي.",
+        "price": 40,
+        "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/C67A48169B64466A5390527EF16EB992"
+      },
+      {
+        "id": "4e2748fd-eb93-5c7a-a9f1-bd18257abded",
+        "name": "طبق التحرير كبير",
+        "category": "egyptian",
+        "description": "طبق كشري التحرير بالحجم الكبير.",
+        "price": 65,
+        "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/49F4FCF9DF1B0C99F1B2D454A849DFAB"
+      },
+      {
+        "id": "0b2f7c63-db76-5059-9176-78dc32036f7c",
+        "name": "أرز باللبن",
+        "category": "oriental",
+        "description": "أرز باللبن من قائمة كشري التحرير.",
+        "price": 30,
+        "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/91C0183F8DC1DE7BBB1F32225F2D731F"
+      }
+    ]
+  },
+  {
+    "id": "d63e19db-4cdc-511b-81a6-88b1a98b8b7d",
+    "name": "حلواني العبد",
+    "slug": "elabd",
+    "kind": "dessert",
+    "category": "حلويات ومخبوزات",
+    "description": "حلويات ومخبوزات من قائمة حلواني العبد.",
+    "logo": "/images/marketplace/elabd-compact.png",
+    "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/5939FE365B25B89B9BD321349D452E8D",
+    "tags": [
+      "cake",
+      "oriental",
+      "bakery"
+    ],
+    "score": 4.9,
+    "reviews": 342,
+    "minutes": 25,
+    "fee": 15,
+    "meals": [
+      {
+        "id": "6dd9c37f-cf04-588a-8915-0ecfb58f79db",
+        "name": "كرواسون ميجا شوكولاتة",
+        "category": "bakery",
+        "description": "كرواسون ميجا شوكولاتة من قائمة العبد.",
+        "price": 66,
+        "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/5939FE365B25B89B9BD321349D452E8D"
+      },
+      {
+        "id": "44c8d7f4-a3e5-57f1-adfa-b0fb864745cb",
+        "name": "جاتوه ميل فاي شوكولاتة",
+        "category": "cake",
+        "description": "جاتوه ميل فاي بالشوكولاتة.",
+        "price": 60.5,
+        "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/0424F686E0979BDBB3800A807DF7432E"
+      },
+      {
+        "id": "3f95b7b2-8124-5adb-8839-591bbb8e68fa",
+        "name": "جاتوه وايت ويف",
+        "category": "cake",
+        "description": "قطعة جاتوه وايت ويف من القائمة.",
+        "price": 55,
+        "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/EF091BE9A88214409C8B75937865C9A6"
+      }
+    ]
+  },
+  {
+    "id": "cecd424d-3132-58a9-924d-20c18f4ef9d1",
+    "name": "ستاربكس",
+    "slug": "starbucks",
+    "kind": "dessert",
+    "category": "قهوة ومشروبات",
+    "description": "مشروبات قهوة من قائمة Starbucks في مصر.",
+    "logo": "/images/marketplace/starbucks.svg",
+    "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/Caffè_Latte_EGY638869587416243166.jpg",
+    "tags": [
+      "coffee",
+      "bakery"
+    ],
+    "score": 4.8,
+    "reviews": 185,
+    "minutes": 20,
+    "fee": 20,
+    "meals": [
+      {
+        "id": "69a3bc88-f6bd-5225-8e59-057bbd310db8",
+        "name": "لاتيه",
+        "category": "coffee",
+        "description": "قهوة لاتيه من قائمة Starbucks.",
+        "price": 135,
+        "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/Caffè_Latte_EGY638869587416243166.jpg"
+      },
+      {
+        "id": "734510a0-338c-52da-9f63-fee8e67a6ab3",
+        "name": "آيس لاتيه",
+        "category": "coffee",
+        "description": "قهوة آيس لاتيه من قائمة Starbucks.",
+        "price": 135,
+        "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/Iced_Caffè_Latte_EGY638869587416324123.jpg"
+      },
+      {
+        "id": "e35d549b-0f1e-5697-977b-def949f99120",
+        "name": "دبل كراميل فرابتشينو",
+        "category": "coffee",
+        "description": "مشروب دبل كراميل فرابتشينو من القائمة.",
+        "price": 170,
+        "photo": "https://talabat.dhmedia.io/image/talabat/MenuItems/Double_Caramel_Frappuccin638869587411427920.jpg"
+      }
+    ]
+  },
+  {
+    "id": "e31bafd7-5723-53f9-8617-23bf1fa9454c",
+    "name": "كارفور",
+    "slug": "carrefour",
+    "kind": "grocery",
+    "category": "سوبر ماركت",
+    "description": "منتجات بقالة معبأة مختارة من كتالوج كارفور.",
+    "logo": "/images/marketplace/carrefour.svg",
+    "photo": "https://talabat.dhmedia.io/image/product-information-management/61daacb83948764febef3b49.jpg",
+    "tags": [
+      "basics",
+      "dairy",
+      "drinks"
+    ],
+    "score": 4.6,
+    "reviews": 260,
+    "minutes": 35,
+    "fee": 0,
+    "meals": [
+      {
+        "id": "c7e8bc2a-9f15-53dc-be99-17bebb70e4bb",
+        "name": "أرز الضحى المصري · ١ كجم",
+        "category": "basics",
+        "description": "أرز الضحى المصري، عبوة ١ كجم.",
+        "price": 39.99,
+        "photo": "https://talabat.dhmedia.io/image/product-information-management/61daacb83948764febef3b49.jpg"
+      },
+      {
+        "id": "63ecf463-b120-5b4c-8c39-eaa3a7c07559",
+        "name": "لبن المراعي كامل الدسم · ١ لتر",
+        "category": "dairy",
+        "description": "لبن المراعي كامل الدسم، عبوة ١ لتر.",
+        "price": 53.99,
+        "photo": "https://talabat.dhmedia.io/image/darkstores/nv-global-catalog/eg/0e6153bc-cf77-41cc-be2d-710fac49ddab.JPG"
+      },
+      {
+        "id": "0c3b4207-248b-521c-9f44-23c6333cf433",
+        "name": "بيبسي · ١٫٥ لتر",
+        "category": "drinks",
+        "description": "بيبسي، زجاجة ١٫٥ لتر. السعر الترويجي من كتالوج المتجر وقت الالتقاط.",
+        "price": 35.99,
+        "photo": "https://talabat.dhmedia.io/image/product-information-management/68a346a1e2a1e69ea648dda5.jpg"
+      }
+    ]
+  },
+  {
+    "id": "73dba620-e170-5665-a2d9-2049f7e42a8b",
+    "name": "سعودي ماركت",
+    "slug": "seoudi",
+    "kind": "grocery",
+    "category": "سوبر ماركت",
+    "description": "منتجات بقالة وألبان متوفرة ضمن عروض سعودي.",
+    "logo": "/images/marketplace/seoudi-compact.png",
+    "photo": "https://talabat.dhmedia.io/image/darkstores/nv-global-catalog/eg/bfbdd6a3-f351-4058-8e98-f5c68f255240.jpg",
+    "tags": [
+      "dairy",
+      "basics",
+      "bakery"
+    ],
+    "score": 4.8,
+    "reviews": 194,
+    "minutes": 25,
+    "fee": 15,
+    "meals": [
+      {
+        "id": "9b10a315-b058-51a8-ba4a-3bb0c983d348",
+        "name": "بوكس زبادي المراعي فراولة · ٨ × ١٠٥ جم",
+        "category": "dairy",
+        "description": "بوكس زبادي المراعي بالفراولة؛ ٨ عبوات صغيرة.",
+        "price": 82,
+        "photo": "https://talabat.dhmedia.io/image/darkstores/nv-global-catalog/eg/bfbdd6a3-f351-4058-8e98-f5c68f255240.jpg"
+      },
+      {
+        "id": "4794633c-ea0e-534a-808a-50aa467e72f1",
+        "name": "لبن لامار كامل الدسم · ١ لتر",
+        "category": "dairy",
+        "description": "لبن لامار كامل الدسم، عبوة ١ لتر.",
+        "price": 49.95,
+        "photo": "https://talabat.dhmedia.io/image/product-information-management/68385e160835248fad9e20b8.jpg"
+      },
+      {
+        "id": "247b6aca-900f-5c25-955e-67375bfe43df",
+        "name": "حليب لامار بالشوكولاتة · ٤ × ٢٠٠ مل",
+        "category": "drinks",
+        "description": "عبوة من ٤ مشروبات حليب لامار بالشوكولاتة.",
+        "price": 55.8,
+        "photo": "https://images.deliveryhero.io/image/darkstores/nv-global-catalog/eg/5d67aebe-32c2-4911-aa97-e79772f89090.jpg"
+      }
+    ]
+  }
+]
