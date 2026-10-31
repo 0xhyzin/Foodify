@@ -61,6 +61,9 @@ export default async function handler(request, response) {
   const path = '/api/v1/' + paths[0];
   const upstreamUrl = new URL(path, origin);
   incoming.searchParams.delete('foodify_path');
+  // Vercel also forwards the named `:path*` rewrite segment as `path`.
+  // It belongs to routing, not to the upstream API query string.
+  incoming.searchParams.delete('path');
   upstreamUrl.search = incoming.searchParams.toString();
   const headers = new Headers({ Accept: 'application/json' });
   // Never copy arbitrary proxy headers or a browser-supplied upstream hostname.
