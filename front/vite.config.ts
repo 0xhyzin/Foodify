@@ -21,7 +21,8 @@ export default defineConfig(({ mode }) => {
     },
   }],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
-  build: { sourcemap: false },
+  // Keep font files on this origin so the production font-src 'self' CSP can load them.
+  build: { sourcemap: false, assetsInlineLimit: 0 },
   server: { port: 5173, strictPort: true },
   };
 });
