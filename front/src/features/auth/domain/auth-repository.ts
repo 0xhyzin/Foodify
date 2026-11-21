@@ -4,7 +4,7 @@ import type { CompleteProviderSignInInput, EmailInput, OAuthProvider, ResetPassw
 export interface AuthRepository {
   signIn(input: SignInInput): Promise<UserProfile>;
   signUp(input: SignUpInput): Promise<void>;
-  confirmEmail(input: TokenInput): Promise<void>;
+  confirmEmail(input: TokenInput): Promise<UserProfile>;
   resendVerification(input: EmailInput): Promise<void>;
   requestPasswordReset(input: EmailInput): Promise<void>;
   resetPassword(input: ResetPasswordInput): Promise<void>;

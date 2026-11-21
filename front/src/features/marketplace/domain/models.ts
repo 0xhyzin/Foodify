@@ -17,6 +17,7 @@ export interface Merchant {
   category: string;
   tags: string[];
   description: string;
+  address?: string;
   rating: number;
   reviews: number;
   minutes: number;
@@ -82,6 +83,94 @@ export interface CheckoutInput {
   expectedTotal: Money;
   cartRevision: number;
 }
+export interface DeliveryAddressDetails {
+  recipientName: string;
+  phone: string;
+  city: string;
+  area: string;
+  street: string;
+  building: string;
+  floor: string | null;
+  apartment: string | null;
+  deliveryNotes: string | null;
+}
+export interface DeliveryAssignment {
+  deliveryPersonId: string;
+  deliveryPersonName: string;
+  status: string;
+  assignedAt: string;
+  updatedAt: string;
+}
+export interface PreparerSummary {
+  id: string;
+  name: string;
+}
+export interface CourierOption {
+  id: string;
+  name: string;
+  phone: string | null;
+  activeOrderCount: number;
+}
+export interface PreparerOption {
+  id: string;
+  name: string;
+  phone: string | null;
+  activeOrderCount: number;
+}
+export interface AppNotification {
+  id: string;
+  orderId: string;
+  eventType: string;
+  channel: string;
+  title: string;
+  message: string;
+  deliveryStatus: string;
+  readAt: string | null;
+  createdAt: string;
+}
+export interface NotificationPage {
+  items: AppNotification[];
+  unreadCount: number;
+  hasMore: boolean;
+}
+export interface CreateRestaurantInput {
+  name: string;
+  category: string;
+  kind: MerchantKind;
+  address: string;
+  deliveryFee: Money;
+  deliveryMinutes: number;
+  description?: string;
+  artwork?: string;
+  isActive?: boolean;
+}
+export interface UpdateRestaurantInput {
+  name?: string;
+  category?: string;
+  kind?: MerchantKind;
+  address?: string;
+  deliveryFee?: Money;
+  deliveryMinutes?: number;
+  description?: string | null;
+  artwork?: string;
+  isActive?: boolean;
+}
+export interface CreateMenuItemInput {
+  name: string;
+  category: string;
+  price: Money;
+  description?: string;
+  artwork?: string;
+  isAvailable?: boolean;
+}
+export interface UpdateMenuItemInput {
+  name?: string;
+  category?: string;
+  price?: Money;
+  description?: string | null;
+  artwork?: string;
+  isAvailable?: boolean;
+}
 export interface OrderEvent {
   status: string;
   createdAt: string;
@@ -90,6 +179,8 @@ export interface OrderEvent {
 export interface Order {
   id: string;
   restaurantId: string;
+  restaurantName: string | null;
+  restaurantAddress: string | null;
   status: string;
   paymentMethod: string;
   paymentStatus: string;
@@ -100,11 +191,16 @@ export interface Order {
   recipientName: string;
   phone: string;
   deliveryAddress: string;
+  deliveryAddressDetails: DeliveryAddressDetails;
   reference: string;
+  transactionId: string | null;
+  providerTransactionId: string | null;
   claimedReference: string | null;
   simulated: boolean;
   transferRecipient: string | null;
   transferRecipientName: string | null;
+  deliveryAssignment: DeliveryAssignment | null;
+  assignedPreparer: PreparerSummary | null;
   items: {
     productId: string;
     name: string;

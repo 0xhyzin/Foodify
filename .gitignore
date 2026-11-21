@@ -1,6 +1,8 @@
 # Dependency, cache and build outputs
 node_modules/
 .venv/
+.venv-docs/
+site/
 venv/
 __pycache__/
 *.py[cod]
@@ -27,4 +29,9 @@ back/sites/
 .vercel
 .env*.local
 output/private-backups/
+output/verification/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
 .playwright-cli/

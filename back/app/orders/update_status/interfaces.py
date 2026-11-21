@@ -1,9 +1,11 @@
 from typing import Protocol
 
+from app.infrastructure.models import User
+
 from .dto import GetOrderResponse, UpdateOrderStatusRequest
 
 
 class UpdateOrderStatusServiceInterface(Protocol):
     def execute(
-        self, actor_id: str, order_id: str, payload: UpdateOrderStatusRequest
+        self, actor: User, order_id: str, payload: UpdateOrderStatusRequest
     ) -> GetOrderResponse: ...

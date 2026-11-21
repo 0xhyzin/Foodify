@@ -82,10 +82,11 @@ class CheckoutService:
         # Preparing state never claims a real external charge succeeded.
         result = self.payments.authorize(total, payload.payment_method)
         submitted = result.status in {"simulated", "due_on_delivery"}
-        order_status = "placed" if submitted else "awaiting_payment"
+        order_status = "pending" if submitted else "awaiting_payment"
         order = FoodOrder(
             user_id=user_id,
             restaurant_id=restaurant.id,
+            restaurant=restaurant,
             address_id=address.id,
             delivery_address=delivery_address,
             checkout_key=key,

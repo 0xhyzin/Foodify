@@ -41,7 +41,7 @@ class StartPaymentService:
             )
             self.uow.commit()
             return response
-        if payment.status != "pending":
+        if payment.status not in {"pending", "failed"}:
             raise AppError(
                 "payment_initialization_pending",
                 "Payment setup is already running or requires reconciliation. "
@@ -50,14 +50,21 @@ class StartPaymentService:
             )
         self.gateway.integration_id(order.payment_method)
         email = self.users.get_by_id(user_id).email
+        if payment.status == "failed":
+            payment.checkout_token = None
+            payment.expires_at = None
+            payment.provider_order_id = None
+            payment.intention_id = None
         payment.status = "initializing"
         self.uow.commit()  # No row lock is held during the external HTTP request.
         try:
             result = self.gateway.create_checkout(order, email)
-        except AppError:
+        except AppError as error:
             order = lock_owned_order(self.users, self.orders, user_id, order_id)
             if order.payment.status == "initializing":
-                order.payment.status = "initialization_unknown"
+                order.payment.status = (
+                    "pending" if error.code == "payment_setup_rejected" else "initialization_unknown"
+                )
                 self.uow.commit()
             raise
         order = lock_owned_order(self.users, self.orders, user_id, order_id)

@@ -158,7 +158,7 @@
 | --- | --- | --- |
 | `signIn(input)` | `POST /auth/browser/login` ثم mapper وsession.accept | UserProfile |
 | `signUp(input)` | `POST /auth/register` | void |
-| `confirmEmail(input)` | `POST /auth/verify-email` | void |
+| `confirmEmail(input)` | `POST /auth/browser/verify-email` | `UserProfile`؛ اعتماد جلسة متصفح ثم استكمال بيانات التوصيل |
 | `resendVerification(input)` | `POST /auth/resend-verification` | void |
 | `requestPasswordReset(input)` | `POST /auth/forgot-password` | void |
 | `resetPassword(input)` | `POST /auth/reset-password` ثم مسح session | void |

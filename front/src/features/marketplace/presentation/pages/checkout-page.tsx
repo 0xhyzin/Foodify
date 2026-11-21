@@ -24,6 +24,11 @@ export function CheckoutPage() {
     [method, setMethod] = useState<PaymentMethodCode | null>(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  const [hostedCheckout, setHostedCheckout] = useState<{
+    orderId: string;
+    url: string;
+    expiresAt: string;
+  } | null>(null);
   const inFlight = useRef(false),
     retry = useRef<{ fingerprint: string; key: string } | null>(null);
   const result = useResource(
@@ -57,7 +62,7 @@ export function CheckoutPage() {
     methods.find((m) => m.code === method && m.enabled) ??
     methods.find((m) => m.enabled);
   async function submit() {
-    if (inFlight.current || !selectedAddress || !selectedMethod) return;
+    if (inFlight.current || hostedCheckout || !selectedAddress || !selectedMethod) return;
     inFlight.current = true;
     setBusy(true);
     setError("");
@@ -108,16 +113,24 @@ export function CheckoutPage() {
         ["card", "vodafone_cash", "orange_cash"].includes(
           order.paymentMethod,
         ) &&
-        order.paymentStatus !== "paid"
+        ["pending", "failed"].includes(order.paymentStatus)
       ) {
         try {
           const payment = await createStartPayment(
             services.marketplace.payments,
           )(order.id);
-          window.location.assign(payment.url);
+          setHostedCheckout({ orderId: order.id, ...payment });
+          try {
+            window.location.assign(payment.url);
+          } catch {
+            setError("بوابة الدفع جاهزة. افتحها من الرابط عشان تكمّل الدفع.");
+          }
         } catch (cause) {
-          showToast(getErrorMessage(cause));
-          navigate("/orders/" + order.id);
+          const message = getErrorMessage(cause);
+          showToast(message);
+          navigate("/orders/" + order.id, {
+            state: { paymentSetupError: message },
+          });
         }
       } else navigate("/orders/" + order.id);
     } catch (cause) {
@@ -168,6 +181,7 @@ export function CheckoutPage() {
                       type="radio"
                       name="delivery-address"
                       value={a.id}
+                      disabled={busy || !!hostedCheckout}
                       checked={a.id === selectedAddress?.id}
                       onChange={() => setAddressId(a.id)}
                     />
@@ -203,7 +217,7 @@ export function CheckoutPage() {
                   <input
                     type="radio"
                     name="payment-method"
-                    disabled={!m.enabled || busy}
+                    disabled={!m.enabled || busy || !!hostedCheckout}
                     checked={m.code === selectedMethod?.code}
                     onChange={() => setMethod(m.code)}
                   />
@@ -266,12 +280,26 @@ export function CheckoutPage() {
               </button>
             </p>
           ) : null}
+          {hostedCheckout ? (
+            <div className="mp-notice" role="status">
+              <p>طلبك اتحفظ وبوابة الدفع جاهزة. لو الصفحة ما اتفتحتش تلقائيًا:</p>
+              {Date.parse(hostedCheckout.expiresAt) > Date.now() ? (
+                <a className="button button-primary mp-full" href={hostedCheckout.url} rel="noreferrer">
+                  افتح Paymob للدفع بالبطاقة أو المحفظة
+                </a>
+              ) : (
+                <p>صلاحية رابط الدفع انتهت. راجع حالة الطلب قبل ما تكمّل.</p>
+              )}
+              <Link to={"/orders/" + hostedCheckout.orderId}>عرض حالة الطلب</Link>
+            </div>
+          ) : null}
           <Button
             className="mp-full"
             loading={busy}
             disabled={
               !selectedAddress ||
               !selectedMethod ||
+              !!hostedCheckout ||
               cart.items.some((l) => !l.available)
             }
             onClick={() => void submit()}

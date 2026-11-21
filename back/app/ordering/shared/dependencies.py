@@ -9,11 +9,13 @@ from app.ordering.infrastructure.cart_repository import SqlAlchemyCartRepository
 from app.ordering.infrastructure.catalog_repository import SqlAlchemyCatalogRepository
 from app.ordering.infrastructure.order_repository import SqlAlchemyOrderRepository
 from app.ordering.infrastructure.payments import ConfiguredPaymentGateway
+from app.ordering.infrastructure.staff_repository import SqlAlchemyRestaurantStaffRepository
 from app.ordering.shared.interfaces import (
     CartRepository,
     CatalogRepository,
     OrderRepository,
     PaymentGateway,
+    RestaurantStaffRepository,
 )
 from app.users.shared.dependencies.resources import DB
 
@@ -30,6 +32,10 @@ def get_order_repository(db: DB) -> OrderRepository:
     return SqlAlchemyOrderRepository(db)
 
 
+def get_staff_repository(db: DB) -> RestaurantStaffRepository:
+    return SqlAlchemyRestaurantStaffRepository(db)
+
+
 def get_payment_gateway() -> PaymentGateway:
     settings = get_settings()
     return ConfiguredPaymentGateway(settings)
@@ -38,4 +44,5 @@ def get_payment_gateway() -> PaymentGateway:
 Catalog = Annotated[CatalogRepository, Depends(get_catalog_repository)]
 Carts = Annotated[CartRepository, Depends(get_cart_repository)]
 Orders = Annotated[OrderRepository, Depends(get_order_repository)]
+Staff = Annotated[RestaurantStaffRepository, Depends(get_staff_repository)]
 Payments = Annotated[PaymentGateway, Depends(get_payment_gateway)]

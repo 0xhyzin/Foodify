@@ -10,7 +10,7 @@ requires-python = ">=3.12"
 dynamic = ["dependencies"]
 
 [tool.setuptools.dynamic]
-dependencies = {file = ["requirements.txt"]}
+dependencies = {file = ["requirements.lock.txt"]}
 
 [tool.setuptools.packages.find]
 include = ["app*"]
@@ -25,3 +25,11 @@ entrypoint = "app.hosted:app"
 [tool.ruff]
 target-version = "py312"
 line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers"
+markers = [
+    "unit: isolated functions or adapters with fake dependencies; no HTTP application or database",
+    "integration: FastAPI routes, services and SQLAlchemy repositories with an in-memory database",
+]

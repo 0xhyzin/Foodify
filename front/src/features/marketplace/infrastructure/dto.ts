@@ -12,6 +12,7 @@ export interface MerchantDto {
   category: string;
   tags: string[];
   description: string | null;
+  address?: string;
   rating: string;
   reviews: number;
   time: number;
@@ -49,6 +50,8 @@ export interface CartDto {
 export interface OrderDto {
   id: string;
   restaurant_id: string;
+  restaurant_name?: string | null;
+  restaurant_address?: string | null;
   status: string;
   payment_method: string;
   payment_status: string;
@@ -65,13 +68,27 @@ export interface OrderDto {
     building: string;
     floor?: string | null;
     apartment?: string | null;
+    delivery_notes?: string | null;
   };
   payment: {
     reference: string;
+    transaction_id?: string | null;
+    provider_transaction_id?: string | null;
     is_simulated: boolean;
     claimed_reference: string | null;
     transfer_recipient: string | null;
     transfer_recipient_name: string | null;
+  } | null;
+  delivery_assignment?: {
+    delivery_person_id: string;
+    delivery_person_name: string;
+    status: string;
+    assigned_at: string;
+    updated_at: string;
+  } | null;
+  assigned_preparer?: {
+    id: string;
+    name: string;
   } | null;
   items: {
     menu_item_id: string;
@@ -81,4 +98,48 @@ export interface OrderDto {
     line_total: string;
   }[];
   events: { status: string; note: string | null; created_at: string }[];
+}
+export interface CourierDto {
+  id: string;
+  name: string;
+  phone: string | null;
+  active_order_count: number;
+}
+export interface PreparerDto {
+  id: string;
+  name: string;
+  phone: string | null;
+  active_order_count: number;
+}
+export interface NotificationDto {
+  id: string;
+  order_id: string;
+  event_type: string;
+  channel: string;
+  title: string;
+  message: string;
+  delivery_status: string;
+  read_at: string | null;
+  created_at: string;
+}
+export interface AssignDeliveryResultDto {
+  order_id: string;
+  delivery_person_id: string;
+  delivery_person_name: string;
+  assignment_status: string;
+  assigned_at: string;
+}
+export interface ReassignDeliveryResultDto {
+  order_id: string;
+  previous_delivery_person_id: string;
+  new_delivery_person_id: string;
+  new_delivery_person_name: string;
+  assignment_status: string;
+  updated_at: string;
+}
+export interface UpdateDeliveryStatusResultDto {
+  order_id: string;
+  previous_status: string;
+  current_status: string;
+  order: OrderDto;
 }

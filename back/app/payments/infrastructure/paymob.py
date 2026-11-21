@@ -6,6 +6,7 @@ and developers/webhook-callbacks-and-hmac/hmac/hmac-transaction-callback.
 
 import hashlib
 import hmac
+import logging
 import re
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -18,6 +19,8 @@ from app.ordering.models import FoodOrder
 from app.payments.shared.interfaces import HostedCheckout, VerifiedTransaction
 from app.shared.errors import AppError
 from app.shared.time import utcnow
+
+logger = logging.getLogger(__name__)
 
 HMAC_FIELDS = (
     "amount_cents",
@@ -59,7 +62,7 @@ class PaymobHostedGateway:
 
     def checkout_url(self, encrypted_token: str) -> str:
         token = self.cipher.decrypt(encrypted_token.encode()).decode()
-        return "https://accept.paymob.com/unifiedcheckout/?" + urlencode(
+        return "https://eg.checkout.paymob.com/?" + urlencode(
             {"publicKey": self.settings.paymob_public_key, "clientSecret": token}
         )
 
@@ -69,15 +72,27 @@ class PaymobHostedGateway:
         names = address["recipient_name"].split(maxsplit=1)
         items = [
             {
-                "name": item.item_name,
-                "amount": int(item.unit_price * 100),
-                "quantity": item.quantity,
+                "name": f"{item.quantity} × {item.item_name}"[:50],
+                # Group each order line into one Paymob item so both item-total
+                # interpretations produce the exact amount recorded on the order.
+                "amount": int(item.unit_price * item.quantity * 100),
+                "quantity": 1,
+                "description": f"{item.quantity} × {item.unit_price} {order.currency}",
             }
             for item in order.items
         ]
         if order.delivery_fee:
             items.append(
-                {"name": "Delivery", "amount": int(order.delivery_fee * 100), "quantity": 1}
+                {
+                    "name": "Delivery",
+                    "amount": int(order.delivery_fee * 100),
+                    "quantity": 1,
+                    "description": "Delivery fee",
+                }
+            )
+        if sum(item["amount"] for item in items) != int(order.total * 100):
+            raise AppError(
+                "payment_setup_rejected", "The recorded order total cannot initialize payment.", 409
             )
         body = {
             "amount": int(order.total * 100),
@@ -116,6 +131,18 @@ class PaymobHostedGateway:
                         + self.settings.paymob_secret_key.get_secret_value()
                     },
                 )
+                # These explicit validation/authentication rejections did not
+                # create an intention. A timeout or uncertain response must not retry.
+                if response.status_code in {400, 401, 403, 404, 406}:
+                    logger.warning(
+                        "Paymob intention rejected status=%s code=payment_setup_rejected",
+                        response.status_code,
+                    )
+                    raise AppError(
+                        "payment_setup_rejected",
+                        "Paymob rejected payment setup. Contact support with your order number.",
+                        503,
+                    )
                 response.raise_for_status()
                 data = response.json()
             token, intention, provider_order = (
@@ -127,11 +154,14 @@ class PaymobHostedGateway:
                 not isinstance(token, str)
                 or not token
                 or not isinstance(intention, str)
+                or not intention
                 or type(provider_order) is not int
+                or provider_order <= 0
             ):
                 raise ValueError("Invalid intention response")
         except (httpx.HTTPError, ValueError, KeyError, TypeError):
             # An uncertain response must not create a second potentially chargeable intention.
+            logger.warning("Paymob intention outcome unknown code=payment_initialization_unknown")
             raise AppError(
                 "payment_initialization_unknown",
                 "Could not confirm payment setup. Do not submit again; "

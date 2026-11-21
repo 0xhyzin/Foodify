@@ -1,8 +1,38 @@
-import { Check, ChefHat, Package, Truck } from "lucide-react";
+import {
+  Ban,
+  Check,
+  CheckCircle2,
+  ChefHat,
+  Clock3,
+  PackageCheck,
+  Truck,
+} from "lucide-react";
 import type { Order } from "../../domain/models";
 import { orderLabels, stages } from "../status-labels";
-const icons = [Check, ChefHat, Package, Truck, Check];
+
+const icons = [Clock3, CheckCircle2, ChefHat, PackageCheck, Truck, Check];
+
 export function OrderTimeline({ order }: { order: Order }) {
+  if (order.status === "rejected" || order.status === "cancelled") {
+    const terminalEvent = [...order.events]
+      .reverse()
+      .find((e) => e.status === order.status);
+    return (
+      <div className="mp-terminal-banner" role="status">
+        <Ban aria-hidden="true" size={22} />
+        <div>
+          <strong>{orderLabels[order.status] ?? order.status}</strong>
+          {terminalEvent?.note ? <p>{terminalEvent.note}</p> : null}
+          {terminalEvent ? (
+            <small>
+              {new Date(terminalEvent.createdAt).toLocaleString("ar-EG")}
+            </small>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
   const current = stages.indexOf(order.status);
   return (
     <ol className="mp-timeline" aria-label="مراحل توصيل الطلب">

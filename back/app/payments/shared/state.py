@@ -10,10 +10,10 @@ def confirm_paid_order(
 ) -> None:
     order.payment.status = "paid"
     if order.status == "awaiting_payment":
-        order.status = "placed"
+        order.status = "pending"
         order.events.append(
             OrderEvent(
-                status="placed", actor_id=actor_id, created_at=utcnow(), note="Payment verified."
+                status="pending", actor_id=actor_id, created_at=utcnow(), note="Payment verified."
             )
         )
     cart = carts.get_for_user(order.user_id, order.restaurant_id, for_update=True)

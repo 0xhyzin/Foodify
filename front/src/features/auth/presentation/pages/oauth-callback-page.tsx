@@ -44,7 +44,7 @@ export function OAuthCallbackPage() {
 }
 
 function oauthErrorMessage(code: string): string {
-  if (code === 'email_verification_required') return 'بعتنالك رسالة لتأكيد البريد. افتح الرابط، وبعد التأكيد ارجع واختار نفس طريقة الدخول باستخدام Google أو Facebook.';
+  if (code === 'email_verification_required') return 'بعتنالك رسالة لتأكيد البريد. افتح الرابط واضغط «تأكيد البريد ومتابعة بياناتي»؛ بعدها نكمّل اسمك ورقمك وعنوان التوصيل مباشرة.';
   if (code === 'invalid_oauth_state' || code === 'invalid_oauth_ticket') return 'جلسة تسجيل الدخول انتهت. ارجع وابدأ من جديد.';
   if (code === 'oauth_cancelled') return 'تم إلغاء تسجيل الدخول من مزود الخدمة.';
   if (code === 'oauth_unavailable') return 'مزود تسجيل الدخول غير متاح حاليًا.';

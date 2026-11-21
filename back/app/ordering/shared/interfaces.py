@@ -4,7 +4,16 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Protocol
 
-from app.ordering.models import BrowseCategory, Cart, FoodOrder, MenuItem, PaymentEvent, Restaurant
+from app.infrastructure.models import User
+from app.ordering.models import (
+    BrowseCategory,
+    Cart,
+    DeliveryAssignment,
+    FoodOrder,
+    MenuItem,
+    PaymentEvent,
+    Restaurant,
+)
 
 
 class CatalogRepository(Protocol):
@@ -31,6 +40,10 @@ class CatalogRepository(Protocol):
 
     def get_menu_items(self, item_ids: list[str], for_update: bool = False) -> list[MenuItem]: ...
 
+    def add_restaurant(self, restaurant: Restaurant) -> None: ...
+
+    def add_menu_item(self, item: MenuItem) -> None: ...
+
 
 class CartRepository(Protocol):
     def get_for_user(
@@ -47,11 +60,35 @@ class OrderRepository(Protocol):
     def find_by_provider_order(self, provider_order_id: str) -> FoodOrder | None: ...
     def has_payment_event(self, event_id: str) -> bool: ...
     def add_payment_event(self, event: PaymentEvent) -> None: ...
+    def add_delivery_assignment(self, assignment: DeliveryAssignment) -> None: ...
     def get_by_checkout_key(self, user_id: str, key: str) -> FoodOrder | None: ...
     def list_for_user(self, user_id: str, limit: int, offset: int) -> list[FoodOrder]: ...
     def list_for_restaurant(
-        self, restaurant_id: str, limit: int, offset: int
+        self, restaurant_id: str, limit: int, offset: int, status: str | None = None
     ) -> list[FoodOrder]: ...
+    def list_for_courier(
+        self, delivery_person_id: str, limit: int, offset: int, status: str | None = None
+    ) -> list[FoodOrder]: ...
+    def list_for_preparer(
+        self,
+        preparer_id: str,
+        restaurant_ids: list[str] | None,
+        limit: int,
+        offset: int,
+        status: str | None = None,
+    ) -> list[FoodOrder]: ...
+
+
+class RestaurantStaffRepository(Protocol):
+    def is_assigned(self, restaurant_id: str, user_id: str) -> bool: ...
+    def list_managed_restaurants(self, user_id: str) -> list[Restaurant]: ...
+    def list_all_active_restaurants(self) -> list[Restaurant]: ...
+    def list_active_couriers(self) -> list[tuple[User, int]]: ...
+    def list_active_preparers(
+        self, restaurant_id: str | None = None
+    ) -> list[tuple[User, int]]: ...
+    def list_preparer_user_ids_for_restaurant(self, restaurant_id: str) -> list[str]: ...
+    def assign_staff(self, restaurant_id: str, user_id: str) -> None: ...
 
 
 @dataclass(frozen=True)

@@ -49,6 +49,7 @@ const messages: Record<string, string> = {
   idempotency_key_reused: 'بيانات الطلب اتغيّرت. حدّث السلة وراجع الطلب قبل الإرسال.',
   order_not_found: 'الطلب مش موجود أو مش متاح لحسابك.',
   payment_method_unavailable: 'وسيلة الدفع دي مش متاحة حاليًا. اختار وسيلة تانية.',
+  payment_setup_rejected: 'بوابة الدفع رفضت تجهيز العملية. تواصل مع الدعم برقم الطلب لمراجعة إعدادات الدفع؛ طلبك محفوظ ولم تبدأ عملية دفع.',
   payment_not_required: 'الطلب ده مش محتاج بدء عملية دفع جديدة. راجع حالة الدفع.',
   payment_expired: 'صلاحية رابط الدفع انتهت. راجع حالة الطلب والسلة قبل أي طلب جديد.',
   payment_initialization_unknown: 'تعذّر التأكد من تجهيز الدفع. ما تدفعش مرة تانية وما تعملش طلب بديل؛ تواصل مع الدعم برقم الطلب لمراجعة العملية.',
@@ -57,6 +58,20 @@ const messages: Record<string, string> = {
   invalid_order_transition: 'حدّث الطلب واتبع مراحل التحضير والتوصيل بالترتيب.',
   transfer_not_allowed: 'الطلب ده مش متاح له إرسال بيانات تحويل. راجع حالة الدفع.',
   transfer_not_pending: 'التحويل ده مش قيد المراجعة حاليًا. حدّث الطلب قبل أي إجراء.',
+  delivery_already_assigned: 'تم تعيين مندوب توصيل للطلب ده بالفعل. استخدم خيار تغيير المندوب.',
+  delivery_not_assigned: 'مفيش مندوب توصيل معيّن للطلب ده لسه.',
+  reassignment_not_allowed: 'ماينفعش تغيير المندوب بعد استلام الطلب من المطعم.',
+  same_delivery_person: 'المندوب المختار هو نفسه المعيّن حاليًا على الطلب.',
+  delivery_person_not_found: 'مندوب التوصيل المختار مش موجود.',
+  invalid_delivery_person: 'الحساب المختار مش مفعل كمندوب توصيل.',
+  invalid_order_state: 'حالة الطلب الحالية لا تسمح بتنفيذ الإجراء ده. حدّث الصفحة وراجع الحالة.',
+  order_cannot_be_cancelled: 'ماينفعش إلغاء الطلب بعد قبول المطعم أو بدء التحضير.',
+  preparer_not_found: 'محضّر الطلبات المختار مش موجود.',
+  invalid_preparer: 'الحساب المختار مش مفعل كمحضّر طلبات للمطعم.',
+  notification_not_found: 'الإشعار مش موجود.',
+  staff_user_not_found: 'حساب الموظف مش موجود. تأكد من معرّف المستخدم الصحيح.',
+  invalid_staff_role: 'المستخدم لازم يكون مفعل بدور مدير مطعم أو محضّر طلبات.',
+  menu_item_not_found: 'صنف المنيو ده مش موجود أو لا يتبع المتجر المحدد.',
 };
 
 function fieldName(value: unknown): string | null {

@@ -27,7 +27,8 @@ export function useOrder(id: string) {
           if (controller.signal.aborted) return;
           setState({ key, order });
           terminal =
-            order.status === "delivered" || order.paymentStatus === "refunded";
+            ["delivered", "rejected", "cancelled"].includes(order.status) ||
+            order.paymentStatus === "refunded";
         } catch (error) {
           if (!controller.signal.aborted)
             setState((old) => ({

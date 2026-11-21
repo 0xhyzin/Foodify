@@ -95,21 +95,40 @@ class PaymentView(APIModel):
     status: str
     amount: Decimal
     reference: str
+    transaction_id: str
+    provider_transaction_id: str | None = None
     is_simulated: bool
     claimed_reference: str | None = None
     transfer_recipient: str | None = None
     transfer_recipient_name: str | None = None
 
 
+class DeliveryAssignmentSummary(APIModel):
+    delivery_person_id: str
+    delivery_person_name: str
+    status: str
+    assigned_at: datetime
+    updated_at: datetime
+
+
+class PreparerSummary(APIModel):
+    id: str
+    name: str
+
+
 class OrderView(APIModel):
     id: str
     restaurant_id: str
+    restaurant_name: str | None = None
+    restaurant_address: str | None = None
     address_id: str | None
     delivery_address: AddressWriteRequest
     status: str
     payment_method: str
     payment_status: str
     payment: PaymentView | None
+    delivery_assignment: DeliveryAssignmentSummary | None = None
+    assigned_preparer: PreparerSummary | None = None
     subtotal: Decimal
     delivery_fee: Decimal
     total: Decimal

@@ -1,127 +1,198 @@
-"""TC-01 Registration (FR-01, FR-07) and TC-02 Login (FR-02, FR-06) + logout (FR-03)."""
-from tests.conftest import auth_header, login, register
+"""Current FastAPI registration, confirmation, session and password contracts."""
+
+from datetime import timedelta
+
+import pytest
+from sqlalchemy import func, select
+
+from app.infrastructure.models import ActionToken, AuthSession, EmailOutbox, User
+from app.shared.time import utcnow
+from conftest import (
+    BROWSER_HEADERS, PASSWORD, action_token, auth_header, login, register,
+    register_and_login, verify_registered,
+)
 
 
-class TestRegister:
-    # ---------- Positive ----------
-    def test_register_success_returns_201(self, client):
-        res = register(client)
-        assert res.status_code == 201
-
-    def test_register_success_returns_user_without_password(self, client):
-        body = register(client).get_json()["data"]["user"]
-        assert body["name"] == "Test User"
-        assert body["email"] == "test@example.com"
-        assert body["role"] == "Customer"
-        assert "password" not in body and "PasswordHash" not in body
-
-    def test_register_email_is_normalized(self, client):
-        body = register(client, email="MiXeD@Example.COM ").get_json()["data"]["user"]
-        assert body["email"] == "mixed@example.com"
-
-    def test_register_default_role_is_customer(self, app, client):
-        register(client)
-        from app.models import User
-        with app.app_context():
-            user = User.query.filter_by(Email="test@example.com").first()
-            assert user.role.RoleName == "Customer"
-
-    # ---------- Negative ----------
-    def test_register_duplicate_email_returns_409(self, client):
-        register(client, email="dup@example.com")
-        res = register(client, name="Another", email="dup@example.com")
-        assert res.status_code == 409
-        assert res.get_json()["error"]["code"] == "CONFLICT"
-
-    def test_register_missing_all_fields_returns_400_with_details(self, client):
-        res = client.post("/api/auth/register", json={})
-        assert res.status_code == 400
-        details = res.get_json()["error"]["details"]
-        assert len(details) == 3  # name, email, password
-
-    def test_register_invalid_email_returns_400(self, client):
-        res = register(client, email="not-an-email")
-        assert res.status_code == 400
-
-    def test_register_short_password_returns_400(self, client):
-        res = register(client, password="123")
-        assert res.status_code == 400
-
-    def test_register_missing_password_returns_400(self, client):
-        res = client.post("/api/auth/register", json={"name": "A", "email": "a@b.com"})
-        assert res.status_code == 400
-
-    def test_register_non_object_body_returns_400(self, client):
-        res = client.post("/api/auth/register", data="not json", content_type="application/json")
-        assert res.status_code == 400
-
-    def test_register_empty_string_name_returns_400(self, client):
-        res = register(client, name="   ")
-        assert res.status_code == 400
+pytestmark = pytest.mark.integration
 
 
-class TestLogin:
-    def setup_method(self):
-        pass
-
-    # ---------- Positive ----------
-    def test_login_success_returns_200_and_token(self, client):
-        register(client)
-        res = login(client)
-        assert res.status_code == 200
-        data = res.get_json()["data"]
-        assert "token" in data and data["token"]
-        assert data["user"]["email"] == "test@example.com"
-
-    def test_login_token_decodes_to_user_id_and_role(self, app, client):
-        register(client)
-        token = login(client).get_json()["data"]["token"]
-        from app.validators import decode_token
-        with app.app_context():
-            payload = decode_token(token)
-        assert payload is not None
-        assert payload["role"] == "Customer"
-        assert payload["sub"]
-
-    # ---------- Negative (FR-06) ----------
-    def test_login_wrong_password_returns_401_generic_message(self, client):
-        register(client)
-        res = login(client, password="wrong-password")
-        assert res.status_code == 401
-        assert res.get_json()["error"]["message"] == "البريد الإلكتروني أو كلمة المرور غير صحيحة"
-
-    def test_login_nonexistent_email_returns_same_generic_message(self, client):
-        res = login(client, email="ghost@example.com")
-        wrong_pw = login(client, password="whatever123")
-        assert res.get_json()["error"]["message"] == wrong_pw.get_json()["error"]["message"]
-
-    def test_login_malformed_email_returns_400(self, client):
-        res = login(client, email="bad")
-        assert res.status_code == 400
-
-    def test_login_missing_password_returns_400(self, client):
-        res = client.post("/api/auth/login", json={"email": "a@b.com"})
-        assert res.status_code == 400
-
-    def test_login_no_body_returns_400(self, client):
-        res = client.post("/api/auth/login", json=None)
-        assert res.status_code == 400
+def test_registration_is_generic_and_does_not_issue_session(client, db):
+    response = register(client)
+    assert response.status_code == 202
+    assert set(response.json()) == {"message"}
+    assert db.scalar(select(func.count()).select_from(User)) == 1
+    assert db.scalar(select(func.count()).select_from(EmailOutbox)) == 1
+    assert db.scalar(select(func.count()).select_from(AuthSession)) == 0
 
 
-class TestLogout:
-    def test_logout_invalidates_token(self, client):
-        register(client)
-        token = login(client).get_json()["data"]["token"]
-        res = client.post("/api/auth/logout", headers=auth_header(token))
-        assert res.status_code == 200
+def test_duplicate_registration_is_indistinguishable_and_creates_no_duplicate(client, db):
+    original = register(client)
+    repeated = register(client)
+    assert (repeated.status_code, repeated.json()) == (original.status_code, original.json())
+    assert db.scalar(select(func.count()).select_from(User)) == 1
+    assert db.scalar(select(func.count()).select_from(EmailOutbox)) == 1
 
-        profile = client.get("/api/users/me", headers=auth_header(token))
-        assert profile.status_code == 401
 
-    def test_logout_without_token_returns_401(self, client):
-        res = client.post("/api/auth/logout")
-        assert res.status_code == 401
+def test_email_normalization_and_customer_role(client, db):
+    register(client, email="MiXeD@Example.COM ")
+    user = db.scalar(select(User))
+    assert user.email == "mixed@example.com"
+    assert [role.code for role in user.roles] == ["customer"]
 
-    def test_logout_with_garbage_token_returns_401(self, client):
-        res = client.post("/api/auth/logout", headers=auth_header("garbage.token.here"))
-        assert res.status_code == 401
+
+@pytest.mark.parametrize("payload", [
+    {}, {"name": "Test", "email": "bad", "password": PASSWORD},
+    {"name": "   ", "email": "test@example.com", "password": PASSWORD},
+    {"name": "Test", "email": "test@example.com", "password": "short"},
+    {"name": "Test", "email": "test@example.com"},
+    {"name": "Test", "email": "test@example.com", "password": PASSWORD, "roles": ["admin"]},
+])
+def test_invalid_registration_is_rejected(client, payload):
+    assert client.post("/api/v1/auth/register", json=payload).status_code == 422
+
+
+def test_malformed_json_is_rejected_without_input_echo(client):
+    response = client.post("/api/v1/auth/register", content="not-json-secret", headers={"Content-Type": "application/json"})
+    assert response.status_code == 422
+    assert "not-json-secret" not in response.text
+
+
+def test_unverified_customer_cannot_password_login(client):
+    register(client)
+    response = login(client)
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "email_verification_required"
+
+
+def test_browser_confirmation_issues_session_and_does_not_expose_refresh_token(client, db):
+    register(client)
+    raw = action_token(db)
+    response = client.post("/api/v1/auth/browser/verify-email", json={"token": raw}, headers=BROWSER_HEADERS)
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["user"]["email_verified"] is True
+    assert body["user"]["profile_complete"] is False
+    assert "refresh_token" not in body
+    assert "httponly" in response.headers["set-cookie"].lower()
+    assert "samesite=lax" in response.headers["set-cookie"].lower()
+    assert client.get("/api/v1/users/me", headers=auth_header(body["access_token"])).status_code == 200
+    assert client.post("/api/v1/auth/browser/verify-email", json={"token": raw}, headers=BROWSER_HEADERS).status_code == 400
+
+
+@pytest.mark.parametrize("headers", [{}, {"Origin": "https://evil.example", "X-Foodify-Client": "web"}, {"Origin": "http://127.0.0.1:5173"}])
+def test_browser_confirmation_requires_origin_and_client_header(client, db, headers):
+    register(client)
+    response = client.post("/api/v1/auth/browser/verify-email", json={"token": action_token(db)}, headers=headers)
+    assert response.status_code == 403
+
+
+@pytest.mark.parametrize("minutes,consumed", [(-1, False), (10, True)])
+def test_expired_or_used_proof_cannot_create_session(client, db, minutes, consumed):
+    register(client)
+    raw = action_token(db, minutes=minutes, consumed=consumed)
+    assert client.post("/api/v1/auth/browser/verify-email", json={"token": raw}, headers=BROWSER_HEADERS).status_code == 400
+    assert db.scalar(select(func.count()).select_from(AuthSession)) == 0
+
+
+def test_legacy_confirmation_confirms_without_creating_session(client, db):
+    register(client)
+    response = client.post("/api/v1/auth/verify-email", json={"token": action_token(db)})
+    assert response.status_code == 200
+    assert "access_token" not in response.json()
+    assert db.scalar(select(func.count()).select_from(AuthSession)) == 0
+    assert login(client).status_code == 200
+
+
+def test_confirmation_rolls_back_when_session_issuance_fails(client, db, monkeypatch):
+    register(client)
+    raw = action_token(db)
+    from app.users.shared.session_issuer import SessionIssuer
+    create_session = SessionIssuer.create_session
+
+    def fail(*args):
+        raise RuntimeError("isolated session failure")
+
+    monkeypatch.setattr(SessionIssuer, "create_session", fail)
+    from fastapi.testclient import TestClient
+    safe_client = TestClient(client.app, raise_server_exceptions=False)
+    response = safe_client.post("/api/v1/auth/browser/verify-email", json={"token": raw}, headers=BROWSER_HEADERS)
+    safe_client.close()
+    assert response.status_code == 500
+    db.expire_all()
+    assert db.scalar(select(User)).is_email_verified is False
+    assert db.scalar(select(ActionToken)).consumed_at is None
+    assert db.scalar(select(func.count()).select_from(AuthSession)) == 0
+    monkeypatch.setattr(SessionIssuer, "create_session", create_session)
+    retry = client.post("/api/v1/auth/browser/verify-email", json={"token": raw}, headers=BROWSER_HEADERS)
+    assert retry.status_code == 200, retry.text
+
+
+def test_valid_login_issues_bound_jwt_without_password(client, settings):
+    token = register_and_login(client)
+    import jwt
+    claims = jwt.decode(token, settings.jwt_secret.get_secret_value(), algorithms=["HS256"], audience=settings.jwt_audience, issuer=settings.jwt_issuer)
+    assert claims["type"] == "access" and claims["sid"] and claims["sub"]
+    assert "role" not in claims
+    profile = client.get("/api/v1/users/me", headers=auth_header(token))
+    assert PASSWORD not in profile.text and "password_hash" not in profile.text
+
+
+def test_wrong_credentials_share_generic_error(client):
+    register(client)
+    wrong = login(client, password="Incorrect long password")
+    missing = login(client, email="absent@example.com")
+    assert wrong.status_code == missing.status_code == 401
+    assert wrong.json()["error"]["message"] == missing.json()["error"]["message"]
+
+
+def test_logout_revokes_current_access(client):
+    token = register_and_login(client)
+    assert client.post("/api/v1/auth/logout", headers=auth_header(token)).status_code == 204
+    assert client.get("/api/v1/users/me", headers=auth_header(token)).status_code == 401
+
+
+def test_browser_refresh_rotates_cookie_and_revokes_reuse(client):
+    register(client)
+    verify_registered(client)
+    response = client.post("/api/v1/auth/browser/login", json={"email": "test@example.com", "password": PASSWORD}, headers=BROWSER_HEADERS)
+    assert response.status_code == 200, response.text
+    old_cookie = next(iter(client.cookies.values()))
+    response = client.post("/api/v1/auth/browser/refresh", headers=BROWSER_HEADERS)
+    assert response.status_code == 200, response.text
+    assert "refresh_token" not in response.json()
+    assert old_cookie not in client.cookies.values()
+
+
+def test_reusing_rotated_refresh_token_revokes_the_whole_session(client):
+    register(client)
+    verify_registered(client)
+    original = login(client).json()
+    rotated = client.post("/api/v1/auth/refresh", json={"refresh_token": original["refresh_token"]})
+    assert rotated.status_code == 200
+    replay = client.post("/api/v1/auth/refresh", json={"refresh_token": original["refresh_token"]})
+    assert replay.status_code == 401
+    assert client.get("/api/v1/users/me", headers=auth_header(rotated.json()["access_token"])).status_code == 401
+
+
+def test_forgot_password_is_generic(client, db):
+    register(client)
+    known = client.post("/api/v1/auth/forgot-password", json={"email": "test@example.com"})
+    unknown = client.post("/api/v1/auth/forgot-password", json={"email": "missing@example.com"})
+    assert known.status_code == unknown.status_code == 202
+    assert known.json() == unknown.json()
+
+
+def test_reset_password_revokes_existing_session(client, db):
+    token = register_and_login(client)
+    client.post("/api/v1/auth/forgot-password", json={"email": "test@example.com"})
+    from app.infrastructure.models import TokenType
+    proof = db.scalar(select(ActionToken).join(TokenType).where(TokenType.code == "password_reset"))
+    from app.shared.tokens import hash_token
+    raw = "isolated-password-reset-proof-0123456789"
+    proof.token_hash = hash_token(raw)
+    proof.expires_at = utcnow() + timedelta(minutes=10)
+    db.commit()
+    response = client.post("/api/v1/auth/reset-password", json={"token": raw, "password": "An updated secure password 2026!"})
+    assert response.status_code == 200, response.text
+    assert client.get("/api/v1/users/me", headers=auth_header(token)).status_code == 401
+    assert login(client, password="An updated secure password 2026!").status_code == 200

@@ -6,6 +6,7 @@ from app.restaurants.list_categories.router import router as list_categories_rou
 from app.restaurants.list_favorites.router import router as list_favorites_router
 from app.restaurants.list_menu.router import router as list_menu_router
 from app.restaurants.list_restaurants.router import router as list_restaurants_router
+from app.restaurants.manage.router import router as manage_restaurants_router
 from app.restaurants.set_favorite.router import router as set_favorite_router
 
 """Assemble operation routers only."""
@@ -17,3 +18,4 @@ router.include_router(list_menu_router)
 router.include_router(browse_categories_router)
 router.include_router(list_favorites_router)
 router.include_router(set_favorite_router)
+router.include_router(manage_restaurants_router)

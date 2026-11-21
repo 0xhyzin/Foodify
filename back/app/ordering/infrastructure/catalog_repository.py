@@ -138,3 +138,9 @@ class SqlAlchemyCatalogRepository:
         if for_update:
             statement = statement.with_for_update().execution_options(populate_existing=True)
         return list(self.session.scalars(statement))
+
+    def add_restaurant(self, restaurant: Restaurant) -> None:
+        self.session.add(restaurant)
+
+    def add_menu_item(self, item: MenuItem) -> None:
+        self.session.add(item)

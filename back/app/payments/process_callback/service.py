@@ -1,5 +1,6 @@
 from hashlib import sha256
 
+from app.notifications.interfaces import NotificationDispatcherInterface
 from app.ordering.models import OrderEvent, PaymentEvent
 from app.ordering.shared.interfaces import CartRepository, OrderRepository
 from app.payments.shared.guards import lock_owned_order
@@ -19,13 +20,15 @@ class ProcessCallbackService:
         carts: CartRepository,
         gateway: HostedPaymentGateway,
         uow: UnitOfWork,
+        notifications: NotificationDispatcherInterface | None = None,
     ) -> None:
-        self.users, self.orders, self.carts, self.gateway, self.uow = (
+        self.users, self.orders, self.carts, self.gateway, self.uow, self.notifications = (
             users,
             orders,
             carts,
             gateway,
             uow,
+            notifications,
         )
 
     def execute(self, payload: dict, signature: str) -> None:
@@ -59,6 +62,7 @@ class ProcessCallbackService:
                 created_at=utcnow(),
             )
         )
+        should_notify_failed = False
         if transaction.status == "refunded":
             if payment.transaction_id and payment.transaction_id != transaction.id:
                 raise AppError(
@@ -84,6 +88,26 @@ class ProcessCallbackService:
                 )
             payment.transaction_id = transaction.id
             confirm_paid_order(order, self.carts)
+        elif transaction.status == "failed" and payment.status not in {"paid", "refunded"}:
+            payment.status = "failed"
+            payment.checkout_token = None
+            payment.expires_at = None
+            order.events.append(
+                OrderEvent(
+                    status="payment_failed",
+                    note="Payment failed; order remains awaiting payment.",
+                    created_at=utcnow(),
+                )
+            )
+            should_notify_failed = True
         elif payment.status not in {"paid", "refunded"}:
             payment.status = transaction.status
         self.uow.commit()
+        if should_notify_failed and self.notifications is not None:
+            restaurant_name = order.restaurant.name if order.restaurant else ""
+            self.notifications.dispatch(
+                event_type="payment_failed",
+                order_id=order.id,
+                recipient_id=order.user_id,
+                details={"restaurant_name": restaurant_name},
+            )

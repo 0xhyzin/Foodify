@@ -1145,6 +1145,187 @@
           ]
         }
       ]
+    },
+    {
+      "name": "04 Browser sessions — React integration",
+      "item": [
+        {
+          "name": "01 Confirm email and start browser session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{frontend_origin}}"
+              },
+              {
+                "key": "X-Foodify-Client",
+                "value": "web"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/browser/verify-email",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "تأكيد البريد وبدء جلسة في معاملة واحدة. الرمز صالح مرة واحدة فقط. الفرونت يفتح استكمال الموبايل والعنوان بعد النجاح.\n\nالجلسة تعيد access_token في JSON وrefresh token داخل HttpOnly cookie؛ لا تنسخ refresh token إلى متغير JavaScript. Postman cookie jar يحتفظ بالكوكي تلقائيًا. الاختبارات الآلية منفصلة عن هذه المجموعة اليدوية.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{email_verification_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02 Browser login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{frontend_origin}}"
+              },
+              {
+                "key": "X-Foodify-Client",
+                "value": "web"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/browser/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "استخدم البريد وكلمة المرور لحساب مؤكد.\n\nالجلسة تعيد access_token في JSON وrefresh token داخل HttpOnly cookie؛ لا تنسخ refresh token إلى متغير JavaScript. Postman cookie jar يحتفظ بالكوكي تلقائيًا. الاختبارات الآلية منفصلة عن هذه المجموعة اليدوية.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03 Browser refresh",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{frontend_origin}}"
+              },
+              {
+                "key": "X-Foodify-Client",
+                "value": "web"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/browser/refresh",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "الكوكي ترسل تلقائيًا؛ لا يوجد body.\n\nالجلسة تعيد access_token في JSON وrefresh token داخل HttpOnly cookie؛ لا تنسخ refresh token إلى متغير JavaScript. Postman cookie jar يحتفظ بالكوكي تلقائيًا. الاختبارات الآلية منفصلة عن هذه المجموعة اليدوية."
+          },
+          "response": []
+        },
+        {
+          "name": "04 Browser logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{frontend_origin}}"
+              },
+              {
+                "key": "X-Foodify-Client",
+                "value": "web"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/browser/logout",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "ينهي الجلسة الحالية ويحذف كوكي المتصفح. نجاح 204.\n\nالجلسة تعيد access_token في JSON وrefresh token داخل HttpOnly cookie؛ لا تنسخ refresh token إلى متغير JavaScript. Postman cookie jar يحتفظ بالكوكي تلقائيًا. الاختبارات الآلية منفصلة عن هذه المجموعة اليدوية."
+          },
+          "response": []
+        },
+        {
+          "name": "05 Complete browser OAuth",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{frontend_origin}}"
+              },
+              {
+                "key": "X-Foodify-Client",
+                "value": "web"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/auth/browser/oauth/complete",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "طلب مرجعي للتكامل. الـticket والـverifier يجب أن يكونا من نفس رحلة Google/Facebook؛ لا تختلق قيمهما ولا ترسلهما في query.\n\nالجلسة تعيد access_token في JSON وrefresh token داخل HttpOnly cookie؛ لا تنسخ refresh token إلى متغير JavaScript. Postman cookie jar يحتفظ بالكوكي تلقائيًا. الاختبارات الآلية منفصلة عن هذه المجموعة اليدوية.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticket\": \"{{oauth_ticket}}\",\n  \"binding_verifier\": \"{{binding_verifier}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "frontend_origin",
+      "value": "http://127.0.0.1:5173",
+      "type": "string"
     }
   ]
 }

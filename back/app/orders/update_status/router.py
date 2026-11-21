@@ -20,4 +20,4 @@ def update_order_status(
     actor: Annotated[User, Depends(require_permission("orders:manage"))],
     service: Annotated[UpdateOrderStatusServiceInterface, Depends(get_service)],
 ) -> GetOrderResponse:
-    return service.execute(actor.id, str(order_id), payload)
+    return service.execute(actor, str(order_id), payload)

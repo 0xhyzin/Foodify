@@ -7,7 +7,14 @@ from app.shared.dto import APIModel
 
 
 class UpdateOrderStatusRequest(APIModel):
-    status: Literal["preparing", "ready", "out_for_delivery", "delivered"]
+    status: Literal[
+        "accepted",
+        "rejected",
+        "preparing",
+        "ready_for_pickup",
+        "picked_up",
+        "delivered",
+    ]
     note: str | None = Field(default=None, max_length=250)
 
 

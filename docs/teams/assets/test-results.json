@@ -1,0 +1,1271 @@
+[
+  {
+    "suite": "Backend — Unit",
+    "total": 37,
+    "passed": 37,
+    "failed": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "name": "test_money_rounds_at_the_currency_boundary[12.345-12.35]",
+        "class": "tests.test_domain_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_money_rounds_at_the_currency_boundary[12.344-12.34]",
+        "class": "tests.test_domain_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_money_rounds_at_the_currency_boundary[0.005-0.01]",
+        "class": "tests.test_domain_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_money_rounds_at_the_currency_boundary[0-0.00]",
+        "class": "tests.test_domain_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_empty_cart_does_not_charge_delivery",
+        "class": "tests.test_domain_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_cart_mapping_uses_decimal_quantities_and_restaurant_availability[True-True]",
+        "class": "tests.test_domain_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_cart_mapping_uses_decimal_quantities_and_restaurant_availability[False-False]",
+        "class": "tests.test_domain_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_confirmation_transaction_commits_only_with_issued_session[None]",
+        "class": "tests.test_domain_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_confirmation_transaction_commits_only_with_issued_session[issuer]",
+        "class": "tests.test_domain_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_confirmation_transaction_commits_only_with_issued_session[commit]",
+        "class": "tests.test_domain_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_unsigned_or_invalid_hmac_cannot_settle_payment[]",
+        "class": "tests.test_payment_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_unsigned_or_invalid_hmac_cannot_settle_payment[00]",
+        "class": "tests.test_payment_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_unsigned_or_invalid_hmac_cannot_settle_payment[signature2]",
+        "class": "tests.test_payment_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_unsigned_or_invalid_hmac_cannot_settle_payment[signature3]",
+        "class": "tests.test_payment_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_missing_signed_field_is_invalid_callback",
+        "class": "tests.test_payment_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_signed_provider_error_cannot_mark_payment_paid",
+        "class": "tests.test_payment_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_capture_is_settlement_and_authorization_alone_is_not",
+        "class": "tests.test_payment_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_success_response_is_uncertain_and_must_not_be_retried[changes0]",
+        "class": "tests.test_payment_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_success_response_is_uncertain_and_must_not_be_retried[changes1]",
+        "class": "tests.test_payment_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_success_response_is_uncertain_and_must_not_be_retried[changes2]",
+        "class": "tests.test_payment_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_success_response_is_uncertain_and_must_not_be_retried[changes3]",
+        "class": "tests.test_payment_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_success_response_is_uncertain_and_must_not_be_retried[changes4]",
+        "class": "tests.test_payment_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_provider_timeout_has_unknown_outcome",
+        "class": "tests.test_payment_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_inconsistent_order_total_is_rejected_before_contacting_provider",
+        "class": "tests.test_payment_units",
+        "status": "passed"
+      },
+      {
+        "name": "test_signed_callback_status_rules[changes0-paid]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_signed_callback_status_rules[changes1-pending]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_signed_callback_status_rules[changes2-failed]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_signed_callback_status_rules[changes3-failed]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_signed_callback_status_rules[changes4-refunded]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_signed_callback_status_rules[changes5-refunded]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_tampering_with_signed_amount_is_rejected",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_signed_but_malformed_callback_types_rejected[changes0]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_signed_but_malformed_callback_types_rejected[changes1]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_signed_but_malformed_callback_types_rejected[changes2]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_simulation_is_disabled_in_production",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_redis_limiter_hashes_identifiers_and_sets_retry_after",
+        "class": "tests.test_security",
+        "status": "passed"
+      },
+      {
+        "name": "test_redis_failure_fails_closed",
+        "class": "tests.test_security",
+        "status": "passed"
+      }
+    ]
+  },
+  {
+    "suite": "Backend — Integration",
+    "total": 135,
+    "passed": 135,
+    "failed": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "name": "test_registration_is_generic_and_does_not_issue_session",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_duplicate_registration_is_indistinguishable_and_creates_no_duplicate",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_email_normalization_and_customer_role",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_invalid_registration_is_rejected[payload0]",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_invalid_registration_is_rejected[payload1]",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_invalid_registration_is_rejected[payload2]",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_invalid_registration_is_rejected[payload3]",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_invalid_registration_is_rejected[payload4]",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_invalid_registration_is_rejected[payload5]",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_json_is_rejected_without_input_echo",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_unverified_customer_cannot_password_login",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_browser_confirmation_issues_session_and_does_not_expose_refresh_token",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_browser_confirmation_requires_origin_and_client_header[headers0]",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_browser_confirmation_requires_origin_and_client_header[headers1]",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_browser_confirmation_requires_origin_and_client_header[headers2]",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_expired_or_used_proof_cannot_create_session[-1-False]",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_expired_or_used_proof_cannot_create_session[10-True]",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_legacy_confirmation_confirms_without_creating_session",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_confirmation_rolls_back_when_session_issuance_fails",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_valid_login_issues_bound_jwt_without_password",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_wrong_credentials_share_generic_error",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_logout_revokes_current_access",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_browser_refresh_rotates_cookie_and_revokes_reuse",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_reusing_rotated_refresh_token_revokes_the_whole_session",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_forgot_password_is_generic",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_reset_password_revokes_existing_session",
+        "class": "tests.test_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_google_new_customer_receives_session_with_incomplete_profile",
+        "class": "tests.test_oauth",
+        "status": "passed"
+      },
+      {
+        "name": "test_google_email_match_does_not_silently_link_existing_password_account",
+        "class": "tests.test_oauth",
+        "status": "passed"
+      },
+      {
+        "name": "test_wrong_browser_binding_cannot_exchange_google_ticket",
+        "class": "tests.test_oauth",
+        "status": "passed"
+      },
+      {
+        "name": "test_unverified_provider_email_requires_email_proof",
+        "class": "tests.test_oauth",
+        "status": "passed"
+      },
+      {
+        "name": "test_replayed_oauth_state_is_rejected",
+        "class": "tests.test_oauth",
+        "status": "passed"
+      },
+      {
+        "name": "test_unconfigured_provider_has_no_authorization_url",
+        "class": "tests.test_oauth",
+        "status": "passed"
+      },
+      {
+        "name": "test_cart_quantities_totals_and_independent_restaurants",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_repeated_add_coalesces_one_line",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_cart_quantity_bounds_and_strict_type[0]",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_cart_quantity_bounds_and_strict_type[-1]",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_cart_quantity_bounds_and_strict_type[100]",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_cart_quantity_bounds_and_strict_type[True]",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_cart_quantity_bounds_and_strict_type[1.5]",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_cart_quantity_bounds_and_strict_type[2]",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_cart_cannot_exceed_quantity_limit_by_repeated_add",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_item_from_another_restaurant_cannot_enter_cart",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_other_account_cannot_mutate_or_observe_customer_cart",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_remove_item_preserves_other_lines",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_cash_checkout_snapshots_data_and_clears_only_its_cart",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_checkout_replay_returns_one_order_even_after_cart_cleared",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_idempotency_key_reuse_for_changed_payload_rejected",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_checkout_stale_cart_revision_rejected",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_checkout_cannot_trust_client_total",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_checkout_rejects_price_change_after_review",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_checkout_rejects_unavailable_item",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_checkout_rejects_other_customers_address",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_online_checkout_preserves_cart_until_verified_payment",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_orders_history_and_details_are_owned",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_operations_enforces_sequential_tracking_and_records_cash_settlement",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_unpaid_online_order_cannot_start_fulfillment",
+        "class": "tests.test_ordering",
+        "status": "passed"
+      },
+      {
+        "name": "test_duplicate_callback_settles_once_and_clears_unchanged_cart",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_settlement_preserves_cart_changed_during_payment",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_signed_callback_must_match_recorded_order[changes0]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_signed_callback_must_match_recorded_order[changes1]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_signed_callback_must_match_recorded_order[changes2]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_late_failure_cannot_revert_paid_order",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_second_settled_transaction_requires_reconciliation",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_browser_return_query_cannot_mark_order_paid",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_paymob_item_quantities_produce_exact_total_and_encrypted_checkout",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_provider_rejection_and_uncertain_outcomes_differ[400-payment_setup_rejected]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_provider_rejection_and_uncertain_outcomes_differ[401-payment_setup_rejected]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_provider_rejection_and_uncertain_outcomes_differ[406-payment_setup_rejected]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_provider_rejection_and_uncertain_outcomes_differ[500-payment_initialization_unknown]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_payment_service_does_not_retry_uncertain_intentions[payment_setup_rejected-pending]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_payment_service_does_not_retry_uncertain_intentions[payment_initialization_unknown-initialization_unknown]",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_existing_checkout_is_reopened_without_new_intention",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_customer_claim_is_not_payment_confirmation",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_unknown_provider_order_requests_callback_retry_without_writing_event",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_refund_must_match_settled_transaction_and_does_not_corrupt_payment",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_refund_callback_is_idempotent_and_cannot_be_undone_by_paid_callback",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_another_customer_cannot_start_or_claim_payment_for_owned_order",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_bank_transaction_reference_cannot_settle_two_orders",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_provider_transaction_identifier_cannot_settle_two_orders",
+        "class": "tests.test_payments",
+        "status": "passed"
+      },
+      {
+        "name": "test_get_current_profile",
+        "class": "tests.test_profile_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_update_profile_name_and_phone",
+        "class": "tests.test_profile_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_profile_rejects_invalid_or_privileged_fields[payload0]",
+        "class": "tests.test_profile_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_profile_rejects_invalid_or_privileged_fields[payload1]",
+        "class": "tests.test_profile_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_profile_rejects_invalid_or_privileged_fields[payload2]",
+        "class": "tests.test_profile_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_profile_rejects_invalid_or_privileged_fields[payload3]",
+        "class": "tests.test_profile_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_profile_rejects_invalid_or_privileged_fields[payload4]",
+        "class": "tests.test_profile_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_profile_rejects_invalid_or_privileged_fields[payload5]",
+        "class": "tests.test_profile_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_first_address_becomes_default_and_completes_profile",
+        "class": "tests.test_profile_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_address_ownership_cannot_be_changed_or_read_by_other_customer",
+        "class": "tests.test_profile_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_update_and_delete_owned_address",
+        "class": "tests.test_profile_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_invalid_coordinates_rejected[change0]",
+        "class": "tests.test_profile_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_invalid_coordinates_rejected[change1]",
+        "class": "tests.test_profile_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_invalid_coordinates_rejected[change2]",
+        "class": "tests.test_profile_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_customer_cannot_read_operational_restaurant_orders",
+        "class": "tests.test_profile_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_customer_cannot_update_operational_order_status",
+        "class": "tests.test_profile_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_operator_can_read_restaurant_order_list",
+        "class": "tests.test_profile_auth",
+        "status": "passed"
+      },
+      {
+        "name": "test_list_returns_database_catalog",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_catalog_filters[category=burgers-expected0]",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_catalog_filters[search=BURGER-expected1]",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_catalog_filters[search=milk-expected2]",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_catalog_filters[kind=grocery-expected3]",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_catalog_filters[free_delivery=true-expected4]",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_catalog_filters[max_delivery_minutes=25-expected5]",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_catalog_filters[category=unknown-expected6]",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_catalog_filters[search=unmatched-expected7]",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_catalog_filters[category=burgers&search=milk-expected8]",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_sort_and_pagination",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_unbounded_or_unknown_query_rejected[limit=0]",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_unbounded_or_unknown_query_rejected[limit=101]",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_unbounded_or_unknown_query_rejected[offset=-1]",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_unbounded_or_unknown_query_rejected[sort=arbitrary]",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_unbounded_or_unknown_query_rejected[kind=invalid]",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_details_and_menu_categories",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_unknown_restaurant_returns_404[]",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_unknown_restaurant_returns_404[/menu]",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_unknown_restaurant_returns_404[/categories]",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_menu_fields_and_category_filter",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_inactive_restaurant_hidden",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_favorite_is_idempotent_and_user_owned",
+        "class": "tests.test_restaurants",
+        "status": "passed"
+      },
+      {
+        "name": "test_password_uses_argon2id",
+        "class": "tests.test_security",
+        "status": "passed"
+      },
+      {
+        "name": "test_profile_rejects_missing_or_invalid_bearer[headers0]",
+        "class": "tests.test_security",
+        "status": "passed"
+      },
+      {
+        "name": "test_profile_rejects_missing_or_invalid_bearer[headers1]",
+        "class": "tests.test_security",
+        "status": "passed"
+      },
+      {
+        "name": "test_profile_rejects_missing_or_invalid_bearer[headers2]",
+        "class": "tests.test_security",
+        "status": "passed"
+      },
+      {
+        "name": "test_tampered_token_rejected",
+        "class": "tests.test_security",
+        "status": "passed"
+      },
+      {
+        "name": "test_token_signed_with_wrong_secret_rejected",
+        "class": "tests.test_security",
+        "status": "passed"
+      },
+      {
+        "name": "test_expired_token_rejected",
+        "class": "tests.test_security",
+        "status": "passed"
+      },
+      {
+        "name": "test_wrong_token_context_rejected[aud-another-client]",
+        "class": "tests.test_security",
+        "status": "passed"
+      },
+      {
+        "name": "test_wrong_token_context_rejected[iss-another-issuer]",
+        "class": "tests.test_security",
+        "status": "passed"
+      },
+      {
+        "name": "test_wrong_token_context_rejected[type-refresh]",
+        "class": "tests.test_security",
+        "status": "passed"
+      },
+      {
+        "name": "test_deactivated_account_cannot_use_existing_token",
+        "class": "tests.test_security",
+        "status": "passed"
+      },
+      {
+        "name": "test_unknown_route_is_structured",
+        "class": "tests.test_security",
+        "status": "passed"
+      },
+      {
+        "name": "test_untrusted_host_rejected",
+        "class": "tests.test_security",
+        "status": "passed"
+      },
+      {
+        "name": "test_security_headers_are_present",
+        "class": "tests.test_security",
+        "status": "passed"
+      },
+      {
+        "name": "test_disallowed_cors_origin_not_reflected",
+        "class": "tests.test_security",
+        "status": "passed"
+      },
+      {
+        "name": "test_allowed_cors_supports_cookie_transport",
+        "class": "tests.test_security",
+        "status": "passed"
+      }
+    ]
+  },
+  {
+    "suite": "Frontend — Unit",
+    "total": 48,
+    "passed": 48,
+    "failed": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "name": "payment accepts an approved HTTPS Paymob checkout: eg.checkout.paymob.com",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment accepts an approved HTTPS Paymob checkout: accept.paymob.com",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment rejects HTTP",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment rejects lookalike host",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment rejects unexpected port",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment rejects wrong checkout path",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment rejects credentials",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment rejects fragment",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment rejects missing public key",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment rejects missing client secret",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment rejects duplicate public key",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment rejects duplicate client secret",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment rejects blank public key",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment rejects blank client secret",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment rejects invalid URL",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment rejects expired link",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment rejects invalid expiry",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment preserves an uncertain gateway failure instead of making another attempt",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "local canonical origin preserves the OAuth/action path, query, and fragment",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "origin redirect leaves unrelated origin untouched: http://127.0.0.1:5173",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "origin redirect leaves unrelated origin untouched: https://foodify.example",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "origin redirect leaves unrelated origin untouched: http://localhost:4173",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "external /verify-email action reaches its HashRouter page",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "external /reset-password action reaches its HashRouter page",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "external /oauth/callback action reaches its HashRouter page",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "external /oauth/callback action reaches its HashRouter page",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "normalization does not turn an unrelated page into an auth action",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "parallel session restores share one cookie rotation",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "a late refresh 401 cannot erase a newly confirmed or OAuth session",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "a late refresh success cannot restore a cleared session",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "logout waits for an in-flight cookie rotation before clearing the server cookie",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "malformed browser session is rejected before accepting access credentials",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "a rejected request from customer A is never retried as customer B",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "an expired request reuses a token already refreshed for the same customer",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "email confirmation uses browser-session endpoint and continues to profile onboarding",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "OAuth exchange requires the verifier retained by the originating browser tab",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "Google OAuth exchange accepts the browser session and removes its one-use verifier",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "OAuth start rejects an unapproved google authorization destination: https://accounts.google.com.attacker.invalid/o/oauth2/v2/auth",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "OAuth start rejects an unapproved google authorization destination: http://accounts.google.com/o/oauth2/v2/auth",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "OAuth start rejects an unapproved google authorization destination: https://user:password@accounts.google.com/o/oauth2/v2/auth",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "OAuth start rejects an unapproved facebook authorization destination: https://www.facebook.com/unexpected",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "cart rejects invalid quantity 0 before HTTP",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "cart rejects invalid quantity -1 before HTTP",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "cart rejects invalid quantity 1.5 before HTTP",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "cart rejects invalid quantity 100 before HTTP",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "cart rejects invalid quantity NaN before HTTP",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "cart update preserves merchant scope and checkout passes server revision and idempotency key",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "operations only advances active fulfillment stages and never reopens cancelled or unpaid orders",
+        "class": "test",
+        "status": "passed"
+      }
+    ]
+  },
+  {
+    "suite": "Frontend — Integration",
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "name": "confirmation composes HTTP, DTO mapping, session acceptance and onboarding routing",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "protected API rejection rotates the real session manager and retries once with its new token",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "cart HTTP repositories preserve merchant identifiers and exact money strings through mapping",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "checkout use case composes its HTTP DTO, idempotency header and mapped order response",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "payment HTTP response passes through the real Paymob destination and expiry validator",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "checkout conflicts retain server error codes and request IDs through the HTTP boundary",
+        "class": "test",
+        "status": "passed"
+      }
+    ]
+  },
+  {
+    "suite": "Vercel proxy — isolated handler",
+    "total": 12,
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "name": "forwards catalog filters to the fixed backend and removes rewrite parameters",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "forwards authentication, cookies, browser marker and idempotency without arbitrary headers",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "signs the platform client IP and never forwards a browser supplied signature",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "does not sign an invalid client IP",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "forwards multiple refresh cookies and safe upstream response headers",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "rejects duplicate API paths and path traversal without contacting the backend",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "rejects missing, HTTP, credentialed and path-bearing backend origins",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "rejects unsupported HTTP methods before contacting the backend",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "limits parsed and streamed request bodies to one MiB",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "does not forward an unexpected backend redirect",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "returns a safe retryable error when the backend connection fails",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "preserves a successful empty response for logout",
+        "class": "test",
+        "status": "passed"
+      }
+    ]
+  },
+  {
+    "suite": "Postman — contracts",
+    "total": 5,
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "name": "Foodify.postman_collection.json uses one /api/v1 prefix with the shared environment origin",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "Foodify.Sprint2.postman_collection.json uses one /api/v1 prefix with the shared environment origin",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "all Postman environments define a backend origin without a path prefix",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "browser email confirmation reference uses the protected session transport",
+        "class": "test",
+        "status": "passed"
+      },
+      {
+        "name": "browser login references the credential variables already supplied by each environment",
+        "class": "test",
+        "status": "passed"
+      }
+    ]
+  }
+]

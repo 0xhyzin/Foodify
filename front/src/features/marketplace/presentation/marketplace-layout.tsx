@@ -1,8 +1,10 @@
 import { Link, Outlet, useSearchParams } from "react-router";
-import { Heart, MapPin, ShoppingBag, UserRound } from "lucide-react";
+import { BriefcaseBusiness, Heart, MapPin, ShoppingBag, UserRound } from "lucide-react";
 import { useSession } from "@/app/providers/session-provider";
 import { appConfig } from "@/app/config";
 import { useMarketplace } from "./marketplace-provider";
+import { NotificationBell } from "./components/notification-bell";
+import { primaryPortalPath } from "./status-labels";
 import "./marketplace.css";
 const navigation = [
   ["", "الرئيسية"],
@@ -17,9 +19,7 @@ export function MarketplaceLayout() {
   const section = params.get("section") ?? "";
   const { carts, issue } = useMarketplace(),
     { user } = useSession();
-  const operator = user?.roles.some((r) =>
-    ["admin", "operations_manager"].includes(r),
-  );
+  const portalPath = primaryPortalPath(user?.roles);
   return (
     <div className="mp-frame" dir="rtl">
       <a
@@ -46,6 +46,17 @@ export function MarketplaceLayout() {
           </Link>
           <div className="mp-header-actions">
             <Link to="/orders">طلباتي</Link>
+            <NotificationBell portalContext="customer" />
+            {portalPath ? (
+              <Link
+                className="mp-portal-entry"
+                to={portalPath}
+                aria-label="بوابة العمل"
+              >
+                <BriefcaseBusiness aria-hidden="true" size={17} />
+                <span>بوابة العمل</span>
+              </Link>
+            ) : null}
             <Link to={user ? "/account" : "/login"}>
               <UserRound aria-hidden="true" size={19} />
               <span>{user ? user.name.split(" ")[0] : "دخول / حساب جديد"}</span>
@@ -67,7 +78,6 @@ export function MarketplaceLayout() {
               {name}
             </Link>
           ))}
-          {operator ? <Link to="/operations">إدارة الطلبات</Link> : null}
         </nav>
       </header>
       {appConfig.isDemo ? (

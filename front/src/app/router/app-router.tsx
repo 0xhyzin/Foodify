@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { LoadingState } from "@/shared/ui/loading-state";
 import { MarketplaceProvider } from "@/features/marketplace/presentation/marketplace-provider";
 import { MarketplaceLayout } from "@/features/marketplace/presentation/marketplace-layout";
+import { PortalLayout } from "@/features/marketplace/presentation/components/portal-layout";
 import { MarketplacePage } from "@/features/marketplace/presentation/pages/marketplace-page";
 import { MerchantPage } from "@/features/marketplace/presentation/pages/merchant-page";
 import { CartsPage } from "@/features/marketplace/presentation/pages/carts-page";
@@ -55,6 +56,21 @@ const OperationsPage = lazy(() =>
     (m) => ({ default: m.OperationsPage }),
   ),
 );
+const KitchenPage = lazy(() =>
+  import("@/features/marketplace/presentation/pages/kitchen-page").then(
+    (m) => ({ default: m.KitchenPage }),
+  ),
+);
+const DeliveryPage = lazy(() =>
+  import("@/features/marketplace/presentation/pages/delivery-page").then(
+    (m) => ({ default: m.DeliveryPage }),
+  ),
+);
+const NotificationsPage = lazy(() =>
+  import("@/features/marketplace/presentation/pages/notifications-page").then(
+    (m) => ({ default: m.NotificationsPage }),
+  ),
+);
 export function AppRouter() {
   return (
     <HashRouter>
@@ -73,7 +89,7 @@ export function AppRouter() {
                   <Route path="carts" element={<CartsPage />} />
                   <Route path="orders" element={<OrdersPage />} />
                   <Route path="orders/:orderId" element={<OrderPage />} />
-                  <Route path="operations" element={<OperationsPage />} />
+                  <Route path="notifications" element={<NotificationsPage />} />
                   <Route element={<RequireCompleteProfile />}>
                     <Route
                       path="checkout/:restaurantId"
@@ -89,6 +105,18 @@ export function AppRouter() {
                     </div>
                   }
                 />
+              </Route>
+              <Route element={<RequireSession />}>
+                <Route element={<PortalLayout variant="manager" />}>
+                  <Route path="operations" element={<OperationsPage />} />
+                  <Route path="manager" element={<OperationsPage />} />
+                </Route>
+                <Route element={<PortalLayout variant="kitchen" />}>
+                  <Route path="kitchen" element={<KitchenPage />} />
+                </Route>
+                <Route element={<PortalLayout variant="courier" />}>
+                  <Route path="delivery" element={<DeliveryPage />} />
+                </Route>
               </Route>
               <Route element={<AccountLayout />}>
                 <Route path="oauth/callback" element={<OAuthCallbackPage />} />

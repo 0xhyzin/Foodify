@@ -7,6 +7,8 @@ export interface OrderRepository {
     restaurantId: string,
     offset?: number,
     signal?: AbortSignal,
+    status?: string,
   ): Promise<Page<Order>>;
-  updateStatus(id: string, status: string): Promise<Order>;
+  updateStatus(id: string, status: string, note?: string): Promise<Order>;
+  cancel(id: string, note?: string): Promise<Order>;
 }

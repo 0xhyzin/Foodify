@@ -12,9 +12,11 @@ from app.checkout.router import router as checkout_router
 from app.core.api_docs import API_DESCRIPTION, configure_swagger_docs
 from app.core.config import get_settings
 from app.core.middleware import JsonTrustedHostMiddleware, SecurityMiddleware
+from app.delivery.router import router as delivery_router
 from app.dependencies import get_rate_limiter, limit_api_requests
 from app.infrastructure.database import check_database_readiness, get_engine
 from app.infrastructure.embedded_worker import EmbeddedEmailWorker
+from app.notifications.router import router as notifications_router
 from app.orders.router import router as orders_router
 from app.payments.router import router as payments_router
 from app.restaurants.router import router as restaurants_router
@@ -84,6 +86,8 @@ def create_app() -> FastAPI:
     api.include_router(orders_router)
     api.include_router(checkout_router)
     api.include_router(payments_router)
+    api.include_router(delivery_router)
+    api.include_router(notifications_router)
     app.include_router(api)
 
     @app.get("/", tags=["Health"], include_in_schema=False)

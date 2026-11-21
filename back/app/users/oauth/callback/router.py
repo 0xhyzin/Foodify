@@ -15,7 +15,7 @@ from app.users.shared.enums import SocialProvider
 router = APIRouter()
 
 
-@router.get("/oauth/{provider}/callback", response_class=RedirectResponse)
+@router.get("/oauth/{provider}/callback", response_class=RedirectResponse, status_code=303)
 def finish_provider_callback(
     provider: SocialProvider,
     service: Annotated[OAuthCallbackServiceInterface, Depends(get_service)],

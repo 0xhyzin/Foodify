@@ -1,4 +1,4 @@
-"""Global operations staff only; no restaurant-owner assignment is claimed."""
+"""Restaurant-scoped and global operational order listing."""
 
 from typing import Annotated
 from uuid import UUID
@@ -12,7 +12,7 @@ from app.orders.list_restaurant_orders.dto import OrderListQuery, OrderListRespo
 from app.orders.list_restaurant_orders.interfaces import ListRestaurantOrdersServiceInterface
 
 router = APIRouter(tags=["Operations orders"])
-OperationsStaff = Annotated[User, Depends(require_permission("orders:manage"))]
+OperationsStaff = Annotated[User, Depends(require_permission("orders:read"))]
 Service = Annotated[ListRestaurantOrdersServiceInterface, Depends(get_service)]
 
 
@@ -21,7 +21,10 @@ def list_restaurant_orders(
     current_user: OperationsStaff,
     service: Service,
     restaurant_id: UUID,
+    status: Annotated[str | None, Query(max_length=30)] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0, le=1000000)] = 0,
 ) -> OrderListResponse:
-    return service.execute(str(restaurant_id), OrderListQuery(limit=limit, offset=offset))
+    return service.execute(
+        current_user, str(restaurant_id), OrderListQuery(status=status, limit=limit, offset=offset)
+    )

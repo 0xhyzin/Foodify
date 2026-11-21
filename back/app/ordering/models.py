@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from sqlalchemy import (
@@ -21,6 +22,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.infrastructure.database import Base
 from app.shared.time import utcnow
+
+if TYPE_CHECKING:
+    from app.infrastructure.models import User
 
 
 def new_id() -> str:
@@ -138,16 +142,26 @@ class FoodOrder(Base):
         String(36), ForeignKey("carts.id", ondelete="SET NULL")
     )
     cart_revision: Mapped[int | None] = mapped_column(Integer)
-    status: Mapped[str] = mapped_column(String(30), default="placed", index=True)
+    assigned_preparer_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="SET NULL"), index=True
+    )
+    status: Mapped[str] = mapped_column(String(30), default="pending", index=True)
     payment_method: Mapped[str] = mapped_column(String(30))
     subtotal: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     delivery_fee: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     total: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     currency: Mapped[str] = mapped_column(String(3), default="EGP", server_default="EGP")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    restaurant: Mapped["Restaurant"] = relationship(lazy="selectin")
+    assigned_preparer: Mapped["User | None"] = relationship(
+        foreign_keys=[assigned_preparer_id], lazy="selectin"
+    )
     items: Mapped[list["FoodOrderItem"]] = relationship(cascade="all, delete-orphan", lazy="raise")
     payment: Mapped["Payment | None"] = relationship(
         cascade="all, delete-orphan", uselist=False, lazy="raise"
+    )
+    delivery_assignment: Mapped["DeliveryAssignment | None"] = relationship(
+        cascade="all, delete-orphan", uselist=False, lazy="selectin"
     )
     events: Mapped[list["OrderEvent"]] = relationship(
         cascade="all, delete-orphan",
@@ -248,4 +262,59 @@ class PaymentEvent(Base):
     )
     transaction_id: Mapped[str] = mapped_column(String(80))
     status: Mapped[str] = mapped_column(String(30))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class RestaurantStaff(Base):
+    __tablename__ = "restaurant_staff"
+    restaurant_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("restaurants.id", ondelete="CASCADE"), primary_key=True
+    )
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class DeliveryAssignment(Base):
+    __tablename__ = "delivery_assignments"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    order_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("food_orders.id", ondelete="CASCADE"), unique=True, index=True
+    )
+    delivery_person_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="RESTRICT"), index=True
+    )
+    previous_delivery_person_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    assigned_by_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    status: Mapped[str] = mapped_column(String(20), default="assigned", server_default="assigned")
+    assigned_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
+    delivery_person: Mapped["User"] = relationship(
+        foreign_keys=[delivery_person_id], lazy="selectin"
+    )
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+    __table_args__ = (
+        Index("ix_notifications_recipient_read_created", "recipient_id", "read_at", "created_at"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    recipient_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    order_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("food_orders.id", ondelete="CASCADE"), index=True
+    )
+    event_type: Mapped[str] = mapped_column(String(40), index=True)
+    channel: Mapped[str] = mapped_column(String(20), default="in_app", server_default="in_app")
+    title: Mapped[str] = mapped_column(String(160))
+    message: Mapped[str] = mapped_column(String(500))
+    delivery_status: Mapped[str] = mapped_column(String(20), default="sent", server_default="sent")
+    read_at: Mapped[datetime | None] = mapped_column(DateTime)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

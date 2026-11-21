@@ -9,10 +9,12 @@ from app.ordering.shared.dto import (
     CartLineView,
     CartResponse,
     CartView,
+    DeliveryAssignmentSummary,
     MenuItemView,
     OrderLineView,
     OrderView,
     PaymentView,
+    PreparerSummary,
     RestaurantView,
 )
 from app.ordering.shared.pricing import ZERO, money
@@ -98,21 +100,48 @@ def order_view(order: FoodOrder) -> OrderView:
             status=payment.status,
             amount=payment.amount,
             reference=payment.reference,
+            transaction_id=payment.id,
+            provider_transaction_id=payment.transaction_id,
             is_simulated=payment.provider in {"simulation", "sandbox"} or bool(payment.test_mode),
             claimed_reference=payment.claimed_reference,
             transfer_recipient=payment.transfer_recipient,
             transfer_recipient_name=payment.transfer_recipient_name,
         )
     )
+    restaurant = getattr(order, "restaurant", None)
+    assignment = getattr(order, "delivery_assignment", None)
+    assignment_view = (
+        None
+        if assignment is None
+        else DeliveryAssignmentSummary(
+            delivery_person_id=assignment.delivery_person_id,
+            delivery_person_name=(
+                assignment.delivery_person.name if assignment.delivery_person else ""
+            ),
+            status=assignment.status.upper(),
+            assigned_at=assignment.assigned_at.replace(tzinfo=UTC),
+            updated_at=assignment.updated_at.replace(tzinfo=UTC),
+        )
+    )
+    preparer = getattr(order, "assigned_preparer", None)
+    preparer_view = (
+        None
+        if preparer is None
+        else PreparerSummary(id=preparer.id, name=preparer.name)
+    )
     return OrderView(
         id=order.id,
         restaurant_id=order.restaurant_id,
+        restaurant_name=restaurant.name if restaurant else None,
+        restaurant_address=restaurant.address if restaurant else None,
         address_id=order.address_id,
         delivery_address=order.delivery_address,
         status=order.status,
         payment_method=order.payment_method,
         payment_status=payment.status if payment else "unknown",
         payment=payment_view,
+        delivery_assignment=assignment_view,
+        assigned_preparer=preparer_view,
         subtotal=order.subtotal,
         delivery_fee=order.delivery_fee,
         total=order.total,

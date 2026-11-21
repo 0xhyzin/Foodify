@@ -2,6 +2,9 @@ import type { HttpClient } from "@/infrastructure/http/contracts";
 import type { MarketplaceServices } from "../application/services";
 import { HttpCatalogRepository } from "./http-catalog-repository";
 import { HttpCartRepository } from "./http-cart-repository";
+import { HttpDeliveryRepository } from "./http-delivery-repository";
+import { HttpNotificationRepository } from "./http-notification-repository";
+import { HttpOperationsRepository } from "./http-operations-repository";
 import { HttpOrderRepository } from "./http-order-repository";
 import { HttpPaymentRepository } from "./http-payment-repository";
 export function createHttpMarketplace(client: HttpClient): MarketplaceServices {
@@ -10,5 +13,8 @@ export function createHttpMarketplace(client: HttpClient): MarketplaceServices {
     carts: new HttpCartRepository(client),
     orders: new HttpOrderRepository(client),
     payments: new HttpPaymentRepository(client),
+    delivery: new HttpDeliveryRepository(client),
+    notifications: new HttpNotificationRepository(client),
+    operations: new HttpOperationsRepository(client),
   };
 }

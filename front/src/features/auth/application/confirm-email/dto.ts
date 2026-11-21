@@ -1,2 +1,2 @@
 export type { TokenInput as ConfirmEmailDto } from '../../domain/models';
-export type ConfirmEmailResult = void;
+export type { UserProfile as ConfirmEmailResult } from '../../../account/domain/models';

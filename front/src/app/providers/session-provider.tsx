@@ -1,10 +1,17 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useLocation } from 'react-router';
 import type { UserProfile } from '@/features/account/domain/models';
 import { useServices } from './services-provider';
 type SessionContextValue = { user: UserProfile | null; loading: boolean; refresh(): Promise<UserProfile | null>; setUser(user: UserProfile | null): void };
 const SessionContext = createContext<SessionContextValue | null>(null);
 export function SessionProvider({ children }: { children: ReactNode }) {
   const services = useServices();
+  const location = useLocation();
+  // These links issue a fresh session after explicit confirmation or ticket exchange.
+  // Avoid rotating an old refresh cookie while the new session is being established.
+  const [restoreOnMount] = useState(() =>
+    location.pathname !== '/oauth/callback' && location.pathname !== '/verify-email/confirm',
+  );
   const [user, setCurrentUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const revision = useRef(0);
@@ -26,13 +33,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const unsubscribe = services.auth.onSessionInvalidated(() => {
       if (active) setUser(null);
     });
+    if (!restoreOnMount) {
+      setLoading(false);
+      return () => { active = false; unsubscribe(); };
+    }
     const startedAt = revision.current;
     services.auth.getSession()
       .then(current => { if (active && startedAt === revision.current) setUser(current); })
       .catch(() => { if (active && startedAt === revision.current) setUser(null); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; unsubscribe(); };
-  }, [services, setUser]);
+  }, [restoreOnMount, services, setUser]);
   return <SessionContext.Provider value={{ user, loading, refresh, setUser }}>{children}</SessionContext.Provider>;
 }
 export function useSession() { const session = useContext(SessionContext); if (!session) throw new Error('SessionProvider is required'); return session; }

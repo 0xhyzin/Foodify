@@ -1,0 +1,6 @@
+html[lang="ar"] main, html[lang="ar"] .col-md-9 { direction: rtl; text-align: right; }
+html[lang="en"] main, html[lang="en"] .col-md-9 { direction: ltr; text-align: left; }
+pre, pre code { direction: ltr; text-align: left; unicode-bidi: plaintext; }
+code { unicode-bidi: isolate; }
+table { width: 100%; }
+th, td { padding: .6rem; vertical-align: top; }

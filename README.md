@@ -2,7 +2,21 @@
 
 Foodify هو نظام توصيل أكل. المشروع متقسم إلى واجهة React مستقلة وباك إند FastAPI مستقل، بحيث كل جزء يقدر يتطور ويتنشر بشكل منفصل.
 
-الواجهة تعرض Marketplace عربيًا للمطاعم والحلويات والقهوة والبقالة، ببحث وفئات وفلاتر ومفضلة. مصدر بيانات المتاجر والمنتجات هو MySQL عبر FastAPI؛ والواجهة لا تحتوي كتالوجًا محليًا بديلًا. تمت مزامنة عينة من 8 متاجر و24 منتجًا و16 تصنيفًا إلى قاعدة التطوير وقاعدة الاستضافة بتاريخ 2026-10-31، بعد تطبيق migrations حتى `20261031_0005`. تفاصيل التنفيذ في [شرح الواجهة للسبرنت الثاني](front/README_SPRINT_2.md) و[شرح الباك والربط للسبرنت الثاني](back/README_SPRINT_2.md).
+الواجهة تعرض Marketplace عربيًا للمطاعم والحلويات والقهوة والبقالة، ببحث وفئات وفلاتر ومفضلة. مصدر بيانات المتاجر والمنتجات هو MySQL عبر FastAPI؛ والواجهة لا تحتوي كتالوجًا محليًا بديلًا. تمت مزامنة عينة من 8 متاجر و24 منتجًا و16 تصنيفًا إلى قاعدة التطوير وقاعدة الاستضافة بتاريخ 2026-10-31، بعد تطبيق migrations حتى `20261031_0005`.
+
+## تسليم Sprint 2
+
+ابدأ من [دليل شغل التيمات الشامل](docs/teams/index.md): شرح Frontend وIntegration وDeployment والاختبارات وأدوات التوثيق بالعربي، وشرح Backend بالإنجليزي. الدليل قابل للبناء والتصفح باستخدام MkDocs، ومعه OpenAPI وفهرس اختبارات مولّد فعليًا؛ راجع [طريقة بناء التوثيق](docs/teams/documentation.md).
+
+| الشرح | الملف |
+|---|---|
+| Backend بالإنجليزي | [Backend Sprint 2](back/README_SPRINT_2.md) |
+| Frontend بالعربي | [Frontend Sprint 2](front/README_SPRINT_2.md) |
+| Integration بالعربي | [رحلة البيانات والطلبات والدفع](docs/SPRINT_2_INTEGRATION.md) |
+| Deployment بالعربي | [تشغيل ونشر Sprint 2](docs/SPRINT_2_DEPLOYMENT.md) |
+| المراجعة والاختبارات | [النتائج والأوامر وحدود التحقق](docs/SPRINT_2_VERIFICATION.md) |
+| Unit / Integration Tests | [وظيفة كل مجموعة وأوامرها](docs/teams/testing.md) |
+| كل حالات الاختبار | [فهرس النتائج المولّد من JUnit](docs/teams/test-catalog.md) |
 
 الواجهة منشورة على [Vercel](https://foodify-flax.vercel.app)، والباك على [FastAPI Cloud](https://foodify-api.fastapicloud.dev)، وقاعدة MySQL وValkey على Aiven، ورسائل التأكيد واسترجاع كلمة المرور عبر Mailjet SMTP. حالة الاتصال الحالية وقائمة خطوات النشر والتحقق موجودة في [دليل النشر](docs/DEPLOYMENT.md). قاعدة البيانات MySQL.
 
@@ -140,7 +154,7 @@ LoginPage
 |---|---|
 | تسجيل مستخدم | POST /api/v1/auth/register |
 | تسجيل الدخول للمتصفح | POST /api/v1/auth/browser/login |
-| تأكيد البريد | POST /api/v1/auth/verify-email |
+| تأكيد البريد وبدء جلسة المتصفح | POST /api/v1/auth/browser/verify-email |
 | إعادة إرسال التأكيد | POST /api/v1/auth/resend-verification |
 | طلب نسيان كلمة المرور | POST /api/v1/auth/forgot-password |
 | تغيير كلمة المرور | POST /api/v1/auth/reset-password |

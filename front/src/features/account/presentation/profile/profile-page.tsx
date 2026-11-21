@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { ArrowLeft, BadgeCheck, LogOut, Mail, MapPin, Phone, UserRound } from 'lucide-react';
+import { ArrowLeft, BadgeCheck, BriefcaseBusiness, LogOut, Mail, MapPin, Phone, UserRound } from 'lucide-react';
 import type { Address } from '../../domain/models';
 import { useSession } from '@/app/providers/session-provider';
 import { useServices } from '@/app/providers/services-provider';
@@ -28,6 +28,17 @@ export function ProfilePage() {
 
   if (!user) return null;
   const defaultAddress = addresses?.find(item => item.isDefault);
+  const workPortals = [
+    user.roles.some(r => ['admin', 'operations_manager', 'restaurant_manager'].includes(r))
+      ? { to: '/operations', label: 'بوابة المدير وإدارة المطاعم' }
+      : null,
+    user.roles.some(r => ['order_preparer', 'restaurant_manager', 'operations_manager', 'admin'].includes(r))
+      ? { to: '/kitchen', label: 'بوابة تحضير الطلبات (المطبخ)' }
+      : null,
+    user.roles.some(r => ['courier', 'admin'].includes(r))
+      ? { to: '/delivery', label: 'بوابة مندوب التوصيل' }
+      : null,
+  ].filter((p): p is { to: string; label: string } => p !== null);
   return <>
     <div className="profile-heading">
       <div className="avatar" aria-hidden="true">{user.name.slice(0, 1)}</div>
@@ -43,6 +54,16 @@ export function ProfilePage() {
     {defaultAddress ? <AddressCard address={defaultAddress} compact />
       : addresses ? <Link to="/account/addresses/new" className="empty-state empty-link"><MapPin size={26} /><p>ضيف عنوان عشان توصيل أسهل.</p><span className="text-link">إضافة عنوان جديد</span></Link>
         : !loadAction.error && <p role="status" className="caption">جاري تحميل العنوان…</p>}
+    {workPortals.length > 0 && <>
+      <div className="section-heading"><h2>بوابات العمل</h2><BriefcaseBusiness size={17} aria-hidden="true" /></div>
+      <div className="address-list">
+        {workPortals.map(portal => (
+          <Link key={portal.to} to={portal.to} className="button button-secondary">
+            {portal.label}
+          </Link>
+        ))}
+      </div>
+    </>}
     <button type="button" className="logout-button" onClick={() => { logoutAction.clearError(); setLogoutOpen(true); }}><LogOut size={17} />تسجيل الخروج</button>
     <Dialog open={logoutOpen} title="تسجيل الخروج؟" onClose={() => { if (!logoutAction.pending) setLogoutOpen(false); }}>
       <p>تقدر ترجع في أي وقت. بيانات حسابك هتفضل محفوظة بأمان.</p>

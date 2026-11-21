@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useLocation, useParams } from "react-router";
 import {
+  Ban,
   CheckCircle2,
   Clock3,
   CreditCard,
   MapPin,
   Phone,
   ShieldCheck,
+  Truck,
 } from "lucide-react";
 import { useServices } from "@/app/providers/services-provider";
 import { useMarketplace } from "../marketplace-provider";
@@ -22,12 +24,20 @@ import { Button } from "@/shared/ui/button";
 import { Field } from "@/shared/ui/field";
 export function OrderPage() {
   const { orderId = "" } = useParams(),
+    location = useLocation(),
     { marketplace: services } = useServices(),
     { order, error, refresh: refreshOrder } = useOrder(orderId),
     { refresh } = useMarketplace();
   const [reference, setReference] = useState(""),
     [busy, setBusy] = useState(false),
-    [actionError, setActionError] = useState("");
+    [actionError, setActionError] = useState(""),
+    [cancelOpen, setCancelOpen] = useState(false),
+    [cancelNote, setCancelNote] = useState("");
+  const [hostedCheckout, setHostedCheckout] = useState<{
+    orderId: string;
+    url: string;
+    expiresAt: string;
+  } | null>(null);
   const inFlight = useRef(false),
     paymentStatus = order?.paymentStatus;
   useEffect(() => {
@@ -44,7 +54,14 @@ export function OrderPage() {
     );
   const canPay =
     ["card", "vodafone_cash", "orange_cash"].includes(order.paymentMethod) &&
-    ["pending", "failed"].includes(order.paymentStatus);
+    ["pending", "failed"].includes(order.paymentStatus) &&
+    !["rejected", "cancelled"].includes(order.status);
+  const canCancel = ["awaiting_payment", "pending"].includes(order.status);
+  const currentCheckout = hostedCheckout?.orderId === order.id &&
+    Date.parse(hostedCheckout.expiresAt) > Date.now() ? hostedCheckout : null;
+  const paymentSetupError = !currentCheckout && order.status === "awaiting_payment" &&
+    typeof location.state?.paymentSetupError === "string"
+    ? location.state.paymentSetupError : "";
   const run = async (action: () => Promise<unknown>) => {
     if (inFlight.current) return;
     inFlight.current = true;
@@ -70,6 +87,8 @@ export function OrderPage() {
         <span className="mp-confirmation-icon">
           {order.status === "awaiting_payment" ? (
             <Clock3 aria-hidden="true" size={32} />
+          ) : order.status === "rejected" || order.status === "cancelled" ? (
+            <Ban aria-hidden="true" size={32} />
           ) : (
             <CheckCircle2 aria-hidden="true" size={32} />
           )}
@@ -77,7 +96,8 @@ export function OrderPage() {
         <div>
           <h1 tabIndex={-1}>{orderLabels[order.status] ?? order.status}</h1>
           <p>
-            طلب #{order.id.slice(0, 8)} ·{" "}
+            طلب #<bdi>{order.id.slice(0, 8)}</bdi>
+            {order.restaurantName ? ` · ${order.restaurantName}` : ""} ·{" "}
             {new Date(order.createdAt).toLocaleString("ar-EG")}
           </p>
           <span className="mp-status">
@@ -104,6 +124,32 @@ export function OrderPage() {
               حالة الدفع
             </h2>
             <p>{paymentLabels[order.paymentStatus] ?? order.paymentStatus}</p>
+            {order.transactionId || order.providerTransactionId ? (
+              <dl className="mp-payment-meta">
+                <div>
+                  <dt>رقم الطلب</dt>
+                  <dd>
+                    <code dir="ltr">{order.id}</code>
+                  </dd>
+                </div>
+                {order.transactionId ? (
+                  <div>
+                    <dt>معرّف عملية الدفع</dt>
+                    <dd>
+                      <code dir="ltr">{order.transactionId}</code>
+                    </dd>
+                  </div>
+                ) : null}
+                {order.providerTransactionId ? (
+                  <div>
+                    <dt>مرجع البوابة</dt>
+                    <dd>
+                      <code dir="ltr">{order.providerTransactionId}</code>
+                    </dd>
+                  </div>
+                ) : null}
+              </dl>
+            ) : null}
             {order.paymentStatus === "initializing" ? (
               <p className="mp-notice" role="status">
                 بوابة الدفع بتتجهّز. استنى التحديث التلقائي قبل ما تفتحها، وما
@@ -121,19 +167,30 @@ export function OrderPage() {
                   هتنتقل لصفحة Paymob الآمنة لإتمام الدفع. تأكيد التحصيل هيظهر
                   هنا لما يوصلنا من البوابة.
                 </p>
-                <Button
+                {currentCheckout ? (
+                  <a className="button button-primary" href={currentCheckout.url} rel="noreferrer">
+                    افتح Paymob وكمّل الدفع
+                  </a>
+                ) : <Button
                   loading={busy}
                   onClick={() =>
                     void run(async () => {
                       const result = await createStartPayment(
                         services.payments,
                       )(order.id);
-                      window.location.assign(result.url);
+                      setHostedCheckout({ orderId: order.id, ...result });
+                      try {
+                        window.location.assign(result.url);
+                      } catch {
+                        setActionError("بوابة الدفع جاهزة. افتحها من الرابط عشان تكمّل الدفع.");
+                      }
                     })
                   }
                 >
-                  فتح بوابة الدفع
-                </Button>
+                  {order.paymentStatus === "failed"
+                    ? "إعادة محاولة الدفع"
+                    : "فتح بوابة الدفع"}
+                </Button>}
               </>
             ) : null}
             {order.paymentMethod === "instapay" &&
@@ -191,9 +248,9 @@ export function OrderPage() {
                 ) : null}
               </>
             ) : null}
-            {actionError ? (
+            {actionError || paymentSetupError ? (
               <p className="mp-error" role="alert">
-                {actionError}
+                {actionError || paymentSetupError}
               </p>
             ) : null}
             <p className="mp-secure">
@@ -207,6 +264,73 @@ export function OrderPage() {
             <OrderTimeline order={order} />
             {order.status === "awaiting_payment" ? (
               <p className="mp-notice">التحضير هيبدأ بعد تأكيد الدفع.</p>
+            ) : null}
+            {order.deliveryAssignment ? (
+              <div className="mp-courier-chip">
+                <Truck aria-hidden="true" size={18} />
+                <div>
+                  <strong>
+                    المندوب المسؤول: {order.deliveryAssignment.deliveryPersonName}
+                  </strong>
+                  <small>
+                    تم التعيين:{" "}
+                    {new Date(order.deliveryAssignment.assignedAt).toLocaleTimeString(
+                      "ar-EG",
+                      { hour: "2-digit", minute: "2-digit" },
+                    )}
+                  </small>
+                </div>
+              </div>
+            ) : null}
+            {canCancel ? (
+              <div className="mp-cancel-box">
+                {!cancelOpen ? (
+                  <Button
+                    variant="secondary"
+                    disabled={busy}
+                    onClick={() => setCancelOpen(true)}
+                  >
+                    إلغاء الطلب
+                  </Button>
+                ) : (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void run(async () => {
+                        await services.orders.cancel(
+                          order.id,
+                          cancelNote.trim() || undefined,
+                        );
+                        setCancelOpen(false);
+                        setCancelNote("");
+                      });
+                    }}
+                  >
+                    <Field
+                      label="سبب الإلغاء (اختياري)"
+                      value={cancelNote}
+                      onChange={(e) => setCancelNote(e.target.value)}
+                      maxLength={250}
+                      placeholder="مثال: غيرت رأيي أو عنوان خاطئ"
+                    />
+                    <div className="mp-inline-actions">
+                      <Button type="submit" variant="danger" loading={busy}>
+                        تأكيد إلغاء الطلب
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() => {
+                          setCancelOpen(false);
+                          setCancelNote("");
+                        }}
+                      >
+                        تراجع
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </div>
             ) : null}
           </section>
           <section className="mp-checkout-section">

@@ -1,3 +1,4 @@
+from app.notifications.interfaces import NotificationDispatcherInterface
 from app.ordering.models import OrderEvent
 from app.ordering.shared.interfaces import CartRepository, OrderRepository
 from app.ordering.shared.mappers import order_view
@@ -13,9 +14,20 @@ from app.users.shared.interfaces import UserRepository
 
 class ReviewTransferService:
     def __init__(
-        self, users: UserRepository, orders: OrderRepository, carts: CartRepository, uow: UnitOfWork
+        self,
+        users: UserRepository,
+        orders: OrderRepository,
+        carts: CartRepository,
+        uow: UnitOfWork,
+        notifications: NotificationDispatcherInterface | None = None,
     ) -> None:
-        self.users, self.orders, self.carts, self.uow = users, orders, carts, uow
+        self.users, self.orders, self.carts, self.uow, self.notifications = (
+            users,
+            orders,
+            carts,
+            uow,
+            notifications,
+        )
 
     def execute(self, actor_id: str, order_id: str, payload: TransferReview) -> GetOrderResponse:
         found = self.orders.get_locked(order_id)
@@ -35,6 +47,9 @@ class ReviewTransferService:
             )
         if payload.decision == "approve":
             order.payment.verified_reference = payload.verified_reference.strip().lower()
+            # Check the unique bank reference through the unit-of-work boundary
+            # before settlement queries can trigger an implicit SQLAlchemy flush.
+            self.uow.flush()
             confirm_paid_order(order, self.carts, actor_id)
         else:
             order.payment.status = "rejected"
@@ -49,4 +64,12 @@ class ReviewTransferService:
         self.uow.flush()  # Unique verified reference prevents reusing one bank transaction.
         response = GetOrderResponse(data=GetOrderData(order=order_view(order)))
         self.uow.commit()
+        if payload.decision == "reject" and self.notifications is not None:
+            restaurant_name = order.restaurant.name if order.restaurant else ""
+            self.notifications.dispatch(
+                event_type="payment_failed",
+                order_id=order.id,
+                recipient_id=order.user_id,
+                details={"note": payload.note, "restaurant_name": restaurant_name},
+            )
         return response

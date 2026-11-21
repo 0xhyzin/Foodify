@@ -1,7 +1,19 @@
-/**
- * FastAPI email/OAuth redirects use a physical path plus a fragment. The app
- * uses HashRouter, so normalize those links before React reads the hash.
- */
+/** Enter the configured local frontend origin before starting browser sessions. */
+export function redirectLocalDevelopmentOrigin(): boolean {
+  if (!import.meta.env.DEV
+    || window.location.protocol !== 'http:'
+    || window.location.hostname !== 'localhost'
+    || window.location.port !== '5173') return false;
+
+  // OAuth verifiers belong to this tab's exact origin. The local callback uses
+  // 127.0.0.1, so enter that origin before creating or reading any verifier.
+  const destination = new URL(window.location.href);
+  destination.hostname = '127.0.0.1';
+  window.location.replace(destination.href);
+  return true;
+}
+
+/** Convert external action links to HashRouter routes before React reads them. */
 export function normalizeExternalLinks(): void {
   const physicalPath = window.location.pathname.replace(/\/$/, '') || '/';
   const fragment = window.location.hash.slice(1);

@@ -29,9 +29,15 @@ export class HttpAuthRepository implements AuthRepository {
     await this.client.request<MessageResponseDto>('/auth/register', { method: 'POST', body, authenticated: false });
   }
 
-  async confirmEmail(input: TokenInput): Promise<void> {
+  async confirmEmail(input: TokenInput): Promise<UserProfile> {
     const body: ConfirmEmailRequestDto = { token: input.token };
-    await this.client.request<MessageResponseDto>('/auth/verify-email', { method: 'POST', body, authenticated: false });
+    const dto = await this.client.request<BrowserSessionDto>('/auth/browser/verify-email', {
+      method: 'POST', body, authenticated: false,
+    });
+    const user = toUserProfile(dto.user);
+    this.oauth.cancel();
+    this.session.accept(dto);
+    return user;
   }
 
   async resendVerification(input: EmailInput): Promise<void> {

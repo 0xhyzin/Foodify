@@ -36,10 +36,12 @@ export class DemoAuthRepository implements AuthRepository {
     this.store.issueToken(input.email, 'verification');
   }
 
-  async confirmEmail(input: TokenInput): Promise<void> {
+  async confirmEmail(input: TokenInput): Promise<UserProfile> {
     await simulateLatency();
     const account = this.store.consumeToken(input.token, 'verification');
     account.emailVerified = true;
+    this.store.activeUserId = account.id;
+    return this.store.toProfile(account);
   }
 
   async resendVerification(input: EmailInput): Promise<void> {

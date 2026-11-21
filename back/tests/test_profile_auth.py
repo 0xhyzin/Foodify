@@ -1,129 +1,72 @@
-"""TC-03 Profile (FR-04) and TC-06 Authorization (FR-05 / NFR-02)."""
-from tests.conftest import auth_header, login, register, register_and_login  # noqa: F401
+"""Own-profile/address contracts and operations authorization."""
+
+from uuid import uuid4
+
+import pytest
+
+from conftest import ADDRESS, auth_header, register_and_login
 
 
-class TestProfile:
-    # ---------- Positive ----------
-    def test_get_me_returns_current_user(self, client):
-        register(client)
-        token = login(client).get_json()["data"]["token"]
-        res = client.get("/api/users/me", headers=auth_header(token))
-        assert res.status_code == 200
-        assert res.get_json()["data"]["user"]["email"] == "test@example.com"
-
-    def test_update_name_returns_updated_user(self, client):
-        token = register_and_login(client)
-        res = client.put("/api/users/me", json={"name": "New Name"}, headers=auth_header(token))
-        assert res.status_code == 200
-        assert res.get_json()["data"]["user"]["name"] == "New Name"
-
-    def test_update_email_returns_updated_user(self, client):
-        token = register_and_login(client)
-        res = client.put("/api/users/me", json={"email": "new@example.com"}, headers=auth_header(token))
-        assert res.status_code == 200
-        assert res.get_json()["data"]["user"]["email"] == "new@example.com"
-
-    # ---------- Negative ----------
-    def test_get_me_without_token_returns_401(self, client):
-        res = client.get("/api/users/me")
-        assert res.status_code == 401
-        assert res.get_json()["error"]["code"] == "UNAUTHORIZED"
-
-    def test_get_me_with_malformed_header_returns_401(self, client):
-        res = client.get("/api/users/me", headers={"Authorization": "Basic abc"})
-        assert res.status_code == 401
-
-    def test_get_me_with_garbage_token_returns_401(self, client):
-        res = client.get("/api/users/me", headers=auth_header("abc.def.ghi"))
-        assert res.status_code == 401
-
-    def test_update_profile_empty_payload_returns_400(self, client):
-        token = register_and_login(client)
-        res = client.put("/api/users/me", json={}, headers=auth_header(token))
-        assert res.status_code == 400
-
-    def test_update_profile_invalid_email_returns_400(self, client):
-        token = register_and_login(client)
-        res = client.put("/api/users/me", json={"email": "bad"}, headers=auth_header(token))
-        assert res.status_code == 400
-
-    def test_update_profile_to_existing_email_returns_409(self, client):
-        register(client, email="taken@example.com")
-        token = register_and_login(client, email="other@example.com")
-        res = client.put("/api/users/me", json={"email": "taken@example.com"}, headers=auth_header(token))
-        assert res.status_code == 409
+pytestmark = pytest.mark.integration
 
 
-class TestRoleBasedAuthorization:
-    def test_customer_cannot_create_restaurant(self, client):
-        token = register_and_login(client)
-        res = client.post("/api/restaurants", json={
-            "name": "X", "address": "Y", "phone": "01000000000",
-        }, headers=auth_header(token))
-        assert res.status_code == 403
-        assert res.get_json()["error"]["code"] == "FORBIDDEN"
+def test_get_current_profile(client, customer):
+    response = client.get("/api/v1/users/me", headers=customer)
+    assert response.status_code == 200
+    assert response.json()["email"] == "test@example.com"
+    assert response.json()["roles"] == ["customer"]
 
-    def test_customer_cannot_delete_menu_item(self, client):
-        token = register_and_login(client)
-        res = client.delete("/api/restaurants/menu-items/1", headers=auth_header(token))
-        assert res.status_code == 403
 
-    def test_manager_can_create_restaurant(self, client, app):
-        # Registration always creates a Customer; promote to manager directly
-        # (self-promotion via the API must never happen — covered below).
-        from app.models import Role, User
-        register_and_login(client, email="manager2@example.com", password="secret123")
-        with app.app_context():
-            user = User.query.filter_by(Email="manager2@example.com").first()
-            user.RoleID = Role.query.filter_by(RoleName="RestaurantManager").first().RoleID
-            from app import db
-            db.session.commit()
-            token = __import__("app.validators", fromlist=["generate_token"]).generate_token(user)
-        res = client.post("/api/restaurants", json={
-            "name": "My Place", "address": "Cairo", "phone": "01000000000",
-        }, headers=auth_header(token))
-        assert res.status_code == 201
+def test_update_profile_name_and_phone(client, customer):
+    response = client.patch("/api/v1/users/me", json={"name": "New Name", "phone": "+201001234567"}, headers=customer)
+    assert response.status_code == 200, response.text
+    assert response.json()["name"] == "New Name"
+    assert response.json()["phone"] == "+201001234567"
 
-    def test_registration_cannot_self_promote_to_manager(self, client):
-        # Security: the public register endpoint must always create Customers.
-        res = register(client, email="evil@example.com", password="secret123")
-        assert res.get_json()["data"]["user"]["role"] == "Customer"
 
-    def test_manager_cannot_edit_other_managers_restaurant(self, client):
-        from tests.conftest import register_and_login as ral
-        from app.models import User
-        other_manager_token = ral(client, email="othermgr@example.com", password="secret123")
-        client.post("/api/restaurants", json={
-            "name": "Other Place", "address": "Cairo", "phone": "01000000000",
-        }, headers=auth_header(other_manager_token))
+@pytest.mark.parametrize("payload", [{}, {"name": None}, {"name": " "}, {"phone": "bad"}, {"email": "new@example.com"}, {"roles": ["admin"]}])
+def test_profile_rejects_invalid_or_privileged_fields(client, customer, payload):
+    assert client.patch("/api/v1/users/me", json=payload, headers=customer).status_code == 422
 
-        # Seed manager (manager@foodify.com) owns seeded restaurants
-        from app import db
-        from app.seed import seed as _s
-        from app.models import Restaurant
-        seeded = Restaurant.query.first()
-        from app.validators import generate_token
-        with client.application.app_context():
-            user = User.query.filter_by(Email="manager@foodify.com").first()
-            seed_manager_token = generate_token(user)
 
-        res = client.put(f"/api/restaurants/{seeded.RestaurantID}", json={
-            "name": "Hijacked"
-        }, headers=auth_header(other_manager_token))
-        assert res.status_code == 403
+def test_first_address_becomes_default_and_completes_profile(client, customer, address):
+    client.patch("/api/v1/users/me", json={"phone": ADDRESS["phone"]}, headers=customer)
+    body = client.get("/api/v1/users/me", headers=customer).json()
+    assert body["default_address_id"] == address
+    assert body["profile_complete"] is True
+    assert client.get("/api/v1/users/me/addresses", headers=customer).json()[0]["is_default"] is True
 
-    def test_admin_can_edit_any_restaurant(self, client):
-        from app.models import User
-        from app.validators import generate_token
-        with client.application.app_context():
-            admin = User.query.filter_by(Email="admin@foodify.com").first()
-            admin_token = generate_token(admin)
-        from app.models import Restaurant
-        with client.application.app_context():
-            restaurant = Restaurant.query.first()
-            rid = restaurant.RestaurantID
-        res = client.put(f"/api/restaurants/{rid}", json={
-            "name": "Admin Edited"
-        }, headers=auth_header(admin_token))
-        assert res.status_code == 200
-        assert res.get_json()["data"]["restaurant"]["name"] == "Admin Edited"
+
+def test_address_ownership_cannot_be_changed_or_read_by_other_customer(client, customer, address):
+    other = auth_header(register_and_login(client, email="other@example.com"))
+    assert client.get("/api/v1/users/me/addresses", headers=other).json() == []
+    assert client.put(f"/api/v1/users/me/addresses/{address}", json=ADDRESS, headers=other).status_code == 404
+    assert client.delete(f"/api/v1/users/me/addresses/{address}", headers=other).status_code == 404
+    assert client.put(f"/api/v1/users/me/default-address/{address}", headers=other).status_code == 404
+
+
+def test_update_and_delete_owned_address(client, customer, address):
+    response = client.put(f"/api/v1/users/me/addresses/{address}", json={**ADDRESS, "street": "Updated Street"}, headers=customer)
+    assert response.status_code == 200 and response.json()["street"] == "Updated Street"
+    assert client.delete(f"/api/v1/users/me/addresses/{address}", headers=customer).status_code == 204
+    assert client.get("/api/v1/users/me", headers=customer).json()["default_address_id"] is None
+
+
+@pytest.mark.parametrize("change", [{"latitude": "30.1"}, {"longitude": "31.1"}, {"latitude": "91", "longitude": "31"}])
+def test_invalid_coordinates_rejected(client, customer, change):
+    assert client.post("/api/v1/users/me/addresses", json={**ADDRESS, **change}, headers=customer).status_code == 422
+
+
+def test_customer_cannot_read_operational_restaurant_orders(client, customer):
+    assert client.get("/api/v1/restaurant/orders?restaurant_id=11111111-1111-4111-8111-111111111111", headers=customer).status_code == 403
+
+
+def test_customer_cannot_update_operational_order_status(client, customer):
+    response = client.patch(f"/api/v1/operations/orders/{uuid4()}/status", json={"status": "preparing"}, headers=customer)
+    assert response.status_code == 403
+
+
+def test_operator_can_read_restaurant_order_list(client, operator):
+    response = client.get("/api/v1/restaurant/orders?restaurant_id=11111111-1111-4111-8111-111111111111", headers=operator)
+    assert response.status_code == 200, response.text
+    assert response.json()["data"]["orders"] == []

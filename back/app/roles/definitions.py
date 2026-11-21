@@ -10,6 +10,7 @@ ROLE_NAMES: dict[RoleType, str] = {
     RoleType.CUSTOMER: "Customer",
     RoleType.COURIER: "Courier",
     RoleType.ORDER_PREPARER: "Order preparer",
+    RoleType.RESTAURANT_MANAGER: "Restaurant manager",
     RoleType.OPERATIONS_MANAGER: "Operations manager",
     RoleType.ADMIN: "Administrator",
 }
@@ -55,6 +56,13 @@ ROLE_PERMISSIONS: dict[RoleType, frozenset[str]] = {
     | {
         "orders:read",
         "orders:prepare",
+    },
+    RoleType.RESTAURANT_MANAGER: _SELF_SERVICE_PERMISSIONS
+    | {
+        "orders:read",
+        "orders:manage",
+        "orders:prepare",
+        "deliveries:assign",
     },
     RoleType.OPERATIONS_MANAGER: _SELF_SERVICE_PERMISSIONS
     | {

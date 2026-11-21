@@ -36,12 +36,15 @@ export class HttpOrderRepository implements OrderRepository {
   list(offset = 0, signal?: AbortSignal) {
     return this.page("/orders", offset, signal);
   }
-  restaurantOrders(id: string, offset = 0, signal?: AbortSignal) {
-    return this.page(
-      "/restaurant/orders?restaurant_id=" + encodeURIComponent(id),
-      offset,
-      signal,
-    );
+  restaurantOrders(
+    id: string,
+    offset = 0,
+    signal?: AbortSignal,
+    status?: string,
+  ) {
+    const query = new URLSearchParams({ restaurant_id: id });
+    if (status) query.set("status", status);
+    return this.page(`/restaurant/orders?${query}`, offset, signal);
   }
   async get(id: string, signal?: AbortSignal) {
     return orderFromDto(
@@ -53,12 +56,22 @@ export class HttpOrderRepository implements OrderRepository {
       ).data.order,
     );
   }
-  async updateStatus(id: string, status: string) {
+  async updateStatus(id: string, status: string, note?: string) {
     return orderFromDto(
       (
         await this.client.request<Envelope<{ order: OrderDto }>>(
           `/operations/orders/${encodeURIComponent(id)}/status`,
-          { method: "PATCH", body: { status } },
+          { method: "PATCH", body: note ? { status, note } : { status } },
+        )
+      ).data.order,
+    );
+  }
+  async cancel(id: string, note?: string) {
+    return orderFromDto(
+      (
+        await this.client.request<Envelope<{ order: OrderDto }>>(
+          `/orders/${encodeURIComponent(id)}/cancel`,
+          { method: "POST", body: note ? { note } : {} },
         )
       ).data.order,
     );

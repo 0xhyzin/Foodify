@@ -7,6 +7,9 @@
   "scripts": {
     "build": "npm --prefix front run build:production",
     "typecheck": "npm --prefix front run typecheck",
+    "test": "npm run test:proxy && npm run test:contracts && npm --prefix front test",
+    "test:proxy": "node --test tests/proxy.test.mjs",
+    "test:contracts": "node --test tests/postman.test.mjs",
     "dev": "npm --prefix front run dev"
   }
 }
