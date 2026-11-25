@@ -9,7 +9,11 @@ function requests(items) {
   return items.flatMap(item => item.item ? requests(item.item) : [item.request]);
 }
 
-for (const name of ['Foodify.postman_collection.json', 'Foodify.Sprint2.postman_collection.json']) {
+for (const name of [
+  'Foodify.postman_collection.json',
+  'Foodify.Sprint2.postman_collection.json',
+  'Foodify.Sprint3.postman_collection.json',
+]) {
   test(`${name} uses one /api/v1 prefix with the shared environment origin`, () => {
     const collection = load(name);
     const defaultBase = collection.variable?.find(variable => variable.key === 'base_url')?.value;
@@ -51,5 +55,21 @@ test('browser login references the credential variables already supplied by each
     const keys = new Set(load(`${name}.postman_environment.json`).values.map(item => item.key));
     assert.ok(keys.has('email'));
     assert.ok(keys.has('password'));
+  }
+});
+
+test('Sprint 3 Postman collection covers admin, kitchen, delivery, and notifications portals', () => {
+  const collection = load('Foodify.Sprint3.postman_collection.json');
+  const urls = requests(collection.item).map(item => item.url);
+  for (const requiredSuffix of [
+    '/api/v1/admin/staff',
+    '/api/v1/kitchen/orders',
+    '/api/v1/delivery/my-orders',
+    '/api/v1/notifications',
+  ]) {
+    assert.ok(
+      urls.some(url => url.includes(requiredSuffix)),
+      `Missing Sprint 3 Postman contract for ${requiredSuffix}`,
+    );
   }
 });
