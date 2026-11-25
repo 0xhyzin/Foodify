@@ -174,3 +174,15 @@ def test_free_webmail_via_third_party_relay_logs_dmarc_warning(caplog):
     with caplog.at_level(logging.WARNING, logger="foodify.config"):
         make_settings(smtp_host="in-v3.mailjet.com", smtp_from_email="app@gmail.com")
     assert "DMARC" in caplog.text
+
+
+def test_pyproject_declares_static_dependencies_and_project_root_finds_alembic():
+    import tomllib
+
+    from app.core.config import PROJECT_ROOT
+
+    pyproject = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    deps = pyproject["project"]["dependencies"]
+    assert any(dep.startswith("fastapi[standard]") for dep in deps)
+    assert "dynamic" not in pyproject["project"]
+    assert (PROJECT_ROOT / "alembic.ini").is_file()
