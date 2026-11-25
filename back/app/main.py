@@ -22,6 +22,7 @@ from app.payments.router import router as payments_router
 from app.restaurants.router import router as restaurants_router
 from app.shared.dto import ErrorResponse
 from app.shared.errors import AppError, register_exception_handlers
+from app.users.admin.router import router as admin_router
 from app.users.router import auth_router
 from app.users.router import router as users_router
 
@@ -81,6 +82,7 @@ def create_app() -> FastAPI:
     api = APIRouter(prefix="/api/v1", dependencies=[Depends(limit_api_requests)])
     api.include_router(auth_router)
     api.include_router(users_router)
+    api.include_router(admin_router)
     api.include_router(restaurants_router)
     api.include_router(cart_router)
     api.include_router(orders_router)

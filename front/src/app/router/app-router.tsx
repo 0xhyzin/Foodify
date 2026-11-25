@@ -56,6 +56,11 @@ const OperationsPage = lazy(() =>
     (m) => ({ default: m.OperationsPage }),
   ),
 );
+const AdminPage = lazy(() =>
+  import("@/features/marketplace/presentation/pages/admin-page").then(
+    (m) => ({ default: m.AdminPage }),
+  ),
+);
 const KitchenPage = lazy(() =>
   import("@/features/marketplace/presentation/pages/kitchen-page").then(
     (m) => ({ default: m.KitchenPage }),
@@ -107,6 +112,9 @@ export function AppRouter() {
                 />
               </Route>
               <Route element={<RequireSession />}>
+                <Route element={<PortalLayout variant="admin" />}>
+                  <Route path="admin" element={<AdminPage />} />
+                </Route>
                 <Route element={<PortalLayout variant="manager" />}>
                   <Route path="operations" element={<OperationsPage />} />
                   <Route path="manager" element={<OperationsPage />} />

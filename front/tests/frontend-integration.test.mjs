@@ -321,3 +321,66 @@ test('notification and operations repositories cover unread inbox, restaurant/me
   const readyOrder = await ops.updateKitchenStatus('order-a', 'ready_for_pickup');
   assert.equal(readyOrder.status, 'ready_for_pickup');
 });
+
+test('operations repository covers admin listUsers, createStaff, and updateUserRoles contracts', async () => {
+  const adminUserDto = {
+    id: 'staff-1',
+    name: 'كريم المندوب',
+    email: 'karim@foodify.example',
+    phone: '+201012345678',
+    is_active: true,
+    email_verified: true,
+    roles: ['courier'],
+    managed_restaurant_ids: [],
+    created_at: '2026-11-25T10:00:00Z',
+  };
+  const calls = [];
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, options });
+    if (url.includes('/admin/users?')) {
+      return Response.json({
+        data: { users: [adminUserDto], pagination: { limit: 20, offset: 0, has_more: false } },
+      });
+    }
+    if (url.endsWith('/admin/staff') && options?.method === 'POST') {
+      return Response.json({ data: { user: adminUserDto } }, { status: 201 });
+    }
+    return Response.json({
+      data: {
+        user: {
+          ...adminUserDto,
+          roles: ['restaurant_manager'],
+          managed_restaurant_ids: ['rest-1'],
+        },
+      },
+    });
+  };
+  const { manager, client } = transport();
+  manager.accept(sessionDto('admin-access'));
+  const ops = new modules.HttpOperationsRepository(client);
+
+  const page = await ops.listUsers({ role: 'courier', search: 'كريم' });
+  assert.ok(calls[0].url.includes('role=courier'));
+  assert.equal(page.items[0].emailVerified, true);
+
+  const created = await ops.createStaff({
+    name: 'كريم المندوب',
+    email: 'karim@foodify.example',
+    password: 'StrongPassword123!',
+    phone: '+201012345678',
+    roles: ['courier'],
+  });
+  assert.equal(created.roles[0], 'courier');
+
+  const updated = await ops.updateUserRoles('staff-1', {
+    roles: ['restaurant_manager'],
+    isActive: true,
+    restaurantId: 'rest-1',
+  });
+  assert.deepEqual(JSON.parse(calls[2].options.body), {
+    roles: ['restaurant_manager'],
+    is_active: true,
+    restaurant_id: 'rest-1',
+  });
+  assert.equal(updated.managedRestaurantIds[0], 'rest-1');
+});

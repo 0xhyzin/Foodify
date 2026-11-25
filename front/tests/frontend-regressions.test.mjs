@@ -337,7 +337,25 @@ test('role stage helpers separate manager, kitchen, and courier transitions stri
   assert.equal(modules.nextCourierStage('delivered'), undefined);
 
   assert.equal(modules.primaryPortalPath(['customer']), null);
+  assert.equal(modules.primaryPortalPath(['admin']), '/admin');
   assert.equal(modules.primaryPortalPath(['courier']), '/delivery');
   assert.equal(modules.primaryPortalPath(['order_preparer']), '/kitchen');
   assert.equal(modules.primaryPortalPath(['restaurant_manager']), '/operations');
+
+  const baseProfile = {
+    id: 'u1',
+    name: 'Test',
+    email: 'u1@example.invalid',
+    phoneNumber: null,
+    emailVerified: true,
+    profileComplete: false,
+    defaultAddressId: null,
+    roles: ['customer'],
+  };
+  assert.equal(modules.accountDestination(baseProfile), '/onboarding/profile');
+  assert.equal(modules.loginDestination(baseProfile), '/onboarding/profile');
+  assert.equal(modules.loginDestination({ ...baseProfile, roles: ['admin'] }), '/admin');
+  assert.equal(modules.loginDestination({ ...baseProfile, roles: ['restaurant_manager'] }), '/operations');
+  assert.equal(modules.loginDestination({ ...baseProfile, roles: ['order_preparer'] }), '/kitchen');
+  assert.equal(modules.loginDestination({ ...baseProfile, roles: ['courier'] }), '/delivery');
 });

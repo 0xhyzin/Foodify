@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { PlusCircle, Store, UserPlus, UtensilsCrossed } from "lucide-react";
-import type { Merchant, MerchantKind, Product } from "../../domain/models";
+import type {
+  Merchant,
+  MerchantKind,
+  Page,
+  Product,
+  StaffAccount,
+} from "../../domain/models";
 import { formatMoney } from "../../domain/money";
 import { useServices } from "@/app/providers/services-provider";
 import { getErrorMessage } from "@/shared/domain/app-error";
@@ -49,7 +55,8 @@ export function ManagerRestaurantsPanel({
   const [editDesc, setEditDesc] = useState("");
 
   // Assign Staff state
-  const [staffUserId, setStaffUserId] = useState("");
+  const [selectedStaffId, setSelectedStaffId] = useState("");
+  const [manualStaffUuid, setManualStaffUuid] = useState("");
 
   // Add Menu Item state
   const [itemName, setItemName] = useState("");
@@ -76,6 +83,24 @@ export function ManagerRestaurantsPanel({
           : Promise.resolve([] as Product[]),
       [services, selectedId],
     ),
+  );
+
+  const staffDirectory = useResource(
+    useCallback(
+      (signal: AbortSignal) =>
+        isGlobalOperator
+          ? services.operations.listUsers({ limit: 50 }, signal)
+          : Promise.resolve({ items: [], hasMore: false } as Page<StaffAccount>),
+      [services, isGlobalOperator],
+    ),
+  );
+
+  const linkableStaff = (staffDirectory.data?.items ?? []).filter(
+    (u) =>
+      u.isActive &&
+      u.roles.some((r) =>
+        ["restaurant_manager", "order_preparer"].includes(r),
+      ),
   );
 
   async function runAction(message: string, action: () => Promise<unknown>) {
@@ -369,12 +394,18 @@ export function ManagerRestaurantsPanel({
                   className="mp-manager-subform"
                   onSubmit={(e) => {
                     e.preventDefault();
+                    const targetId =
+                      selectedStaffId === "__manual__"
+                        ? manualStaffUuid.trim()
+                        : selectedStaffId || manualStaffUuid.trim();
+                    if (!targetId) return;
                     void runAction("تم ربط الموظف بالمطعم.", async () => {
                       await services.operations.assignStaff(
                         selectedRestaurant.id,
-                        staffUserId.trim(),
+                        targetId,
                       );
-                      setStaffUserId("");
+                      setManualStaffUuid("");
+                      staffDirectory.reload();
                     });
                   }}
                 >
@@ -382,19 +413,39 @@ export function ManagerRestaurantsPanel({
                     <UserPlus aria-hidden="true" size={17} />
                     ربط مدير مطعم أو محضّر طلبات بالمطعم
                   </h3>
-                  <div className="mp-inline-actions">
-                    <Field
-                      label="معرّف الموظف (User UUID)"
-                      value={staffUserId}
-                      onChange={(e) => setStaffUserId(e.target.value)}
-                      required
-                      dir="ltr"
-                      placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                    />
+                  <div className="mp-assign-row">
+                    <label>
+                      <span>اختر الموظف (مدير مطعم أو محضّر)</span>
+                      <select
+                        value={
+                          selectedStaffId ||
+                          (linkableStaff[0]?.id ?? "__manual__")
+                        }
+                        onChange={(e) => setSelectedStaffId(e.target.value)}
+                      >
+                        {linkableStaff.map((u) => (
+                          <option key={u.id} value={u.id}>
+                            {u.name} ({u.email}) — {u.roles.join(", ")}
+                          </option>
+                        ))}
+                        <option value="__manual__">إدخال UUID يدويًا</option>
+                      </select>
+                    </label>
                     <Button type="submit" variant="secondary" loading={busy}>
                       ربط بالمطعم
                     </Button>
                   </div>
+                  {(selectedStaffId === "__manual__" ||
+                    (!selectedStaffId && !linkableStaff.length)) ? (
+                    <Field
+                      label="معرّف الموظف (User UUID)"
+                      value={manualStaffUuid}
+                      onChange={(e) => setManualStaffUuid(e.target.value)}
+                      required
+                      dir="ltr"
+                      placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                    />
+                  ) : null}
                 </form>
               ) : null}
             </>

@@ -75,6 +75,15 @@ export const notificationEventLabels: Record<string, string> = {
   order_ready_for_courier_pickup: "جاهز للاستلام من المطعم",
 };
 
+export const roleLabels: Record<string, string> = {
+  admin: "أدمن المنصة",
+  operations_manager: "مدير عمليات",
+  restaurant_manager: "مدير مطعم",
+  order_preparer: "محضّر طلبات",
+  courier: "مندوب توصيل",
+  customer: "عميل",
+};
+
 const MANAGER_ROLES = new Set([
   "admin",
   "operations_manager",
@@ -87,6 +96,10 @@ const KITCHEN_ROLES = new Set([
   "admin",
 ]);
 const COURIER_ROLES = new Set(["courier", "admin"]);
+
+export function hasAdminRole(roles: readonly string[] | undefined): boolean {
+  return Boolean(roles?.includes("admin"));
+}
 
 export function hasManagerRole(roles: readonly string[] | undefined): boolean {
   return Boolean(roles?.some((role) => MANAGER_ROLES.has(role)));
@@ -102,7 +115,8 @@ export function hasCourierRole(roles: readonly string[] | undefined): boolean {
 
 export function primaryPortalPath(roles: readonly string[] | undefined): string | null {
   if (!roles?.length) return null;
-  if (roles.some((r) => ["admin", "operations_manager", "restaurant_manager"].includes(r))) {
+  if (roles.includes("admin")) return "/admin";
+  if (roles.some((r) => ["operations_manager", "restaurant_manager"].includes(r))) {
     return "/operations";
   }
   if (roles.includes("order_preparer")) return "/kitchen";

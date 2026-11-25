@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useServices } from '@/app/providers/services-provider';
 import { useSession } from '@/app/providers/session-provider';
-import { accountDestination } from '@/app/router/paths';
+import { loginDestination } from '@/app/router/paths';
 import { AppError } from '@/shared/domain/app-error';
 import { useAction } from '@/shared/hooks/use-action';
 import { Button } from '@/shared/ui/button';
@@ -32,7 +32,7 @@ export function LoginPage() {
       }
     }, user => {
       setUser(user);
-      navigate(accountDestination(user), { replace: true });
+      navigate(loginDestination(user), { replace: true });
     });
   }
 

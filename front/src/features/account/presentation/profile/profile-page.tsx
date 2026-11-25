@@ -29,6 +29,9 @@ export function ProfilePage() {
   if (!user) return null;
   const defaultAddress = addresses?.find(item => item.isDefault);
   const workPortals = [
+    user.roles.includes('admin')
+      ? { to: '/admin', label: 'لوحة الأدمن وإدارة الطاقم (/admin)' }
+      : null,
     user.roles.some(r => ['admin', 'operations_manager', 'restaurant_manager'].includes(r))
       ? { to: '/operations', label: 'بوابة المدير وإدارة المطاعم' }
       : null,

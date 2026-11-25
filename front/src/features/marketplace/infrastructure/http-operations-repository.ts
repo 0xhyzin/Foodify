@@ -3,10 +3,13 @@ import type { OperationsRepository } from "../domain/operations-repository";
 import type {
   CreateMenuItemInput,
   CreateRestaurantInput,
+  CreateStaffInput,
   UpdateMenuItemInput,
   UpdateRestaurantInput,
+  UpdateUserRolesInput,
 } from "../domain/models";
 import type {
+  AdminUserDto,
   Envelope,
   MerchantDto,
   OrderDto,
@@ -19,6 +22,7 @@ import {
   orderFromDto,
   preparerFromDto,
   productFromDto,
+  staffAccountFromDto,
 } from "./mappers";
 
 function compactBody(record: Record<string, unknown>): Record<string, unknown> {
@@ -183,5 +187,62 @@ export class HttpOperationsRepository implements OperationsRepository {
       },
     );
     return orderFromDto(result.data.order);
+  }
+
+  async listUsers(
+    options: {
+      role?: string;
+      search?: string;
+      limit?: number;
+      offset?: number;
+    } = {},
+    signal?: AbortSignal,
+  ) {
+    const query = new URLSearchParams({
+      limit: String(options.limit ?? 20),
+      offset: String(options.offset ?? 0),
+    });
+    if (options.role) query.set("role", options.role);
+    if (options.search) query.set("search", options.search);
+    const result = await this.client.request<
+      Envelope<{ users: AdminUserDto[]; pagination: PaginationDto }>
+    >(`/admin/users?${query}`, { signal });
+    return {
+      items: result.data.users.map(staffAccountFromDto),
+      hasMore: result.data.pagination.has_more,
+    };
+  }
+
+  async createStaff(input: CreateStaffInput) {
+    const result = await this.client.request<Envelope<{ user: AdminUserDto }>>(
+      "/admin/staff",
+      {
+        method: "POST",
+        body: compactBody({
+          name: input.name,
+          email: input.email,
+          password: input.password,
+          phone: input.phone || null,
+          roles: input.roles,
+          restaurant_id: input.restaurantId || null,
+        }),
+      },
+    );
+    return staffAccountFromDto(result.data.user);
+  }
+
+  async updateUserRoles(userId: string, input: UpdateUserRolesInput) {
+    const result = await this.client.request<Envelope<{ user: AdminUserDto }>>(
+      `/admin/users/${encodeURIComponent(userId)}/roles`,
+      {
+        method: "PATCH",
+        body: compactBody({
+          roles: input.roles,
+          is_active: input.isActive,
+          restaurant_id: input.restaurantId,
+        }),
+      },
+    );
+    return staffAccountFromDto(result.data.user);
   }
 }

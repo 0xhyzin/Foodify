@@ -1,8 +1,9 @@
 import { Link, Outlet, useLocation } from "react-router";
-import { ChefHat, ClipboardList, Truck, UserRound } from "lucide-react";
+import { ChefHat, ClipboardList, ShieldCheck, Truck, UserRound } from "lucide-react";
 import { useSession } from "@/app/providers/session-provider";
 import { appConfig } from "@/app/config";
 import {
+  hasAdminRole,
   hasCourierRole,
   hasKitchenRole,
   hasManagerRole,
@@ -16,6 +17,12 @@ const portalMeta: Record<
   PortalVariant,
   { badge: string; title: string; subtitle: string; Icon: typeof ClipboardList }
 > = {
+  admin: {
+    badge: "بوابة الأدمن — إدارة المنصة",
+    title: "لوحة تحكم الأدمن",
+    subtitle: "إنشاء الطاقم، تعيين الأدوار والصلاحيات، وإدارة المطاعم.",
+    Icon: ShieldCheck,
+  },
   manager: {
     badge: "بوابة المدير",
     title: "إدارة المطعم والطلبات",
@@ -42,6 +49,7 @@ export function PortalLayout({ variant }: { variant: PortalVariant }) {
   const meta = portalMeta[variant];
   const Icon = meta.Icon;
 
+  const showAdmin = hasAdminRole(user?.roles);
   const showManager = hasManagerRole(user?.roles);
   const showKitchen = hasKitchenRole(user?.roles);
   const showCourier = hasCourierRole(user?.roles);
@@ -73,6 +81,14 @@ export function PortalLayout({ variant }: { variant: PortalVariant }) {
           </div>
 
           <nav className="mp-portal-nav" aria-label="بوابات العمل">
+            {showAdmin ? (
+              <Link
+                to="/admin"
+                className={pathname === "/admin" ? "active" : ""}
+              >
+                لوحة الأدمن
+              </Link>
+            ) : null}
             {showManager ? (
               <Link
                 to="/operations"
