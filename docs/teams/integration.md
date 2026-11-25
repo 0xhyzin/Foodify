@@ -146,4 +146,16 @@ Integration الفرونت يركّب HTTP client الحقيقي والمستو�
 - للـDeployment: قائمة بالأصول والمسارات التي تحتاج rewrite وcookies وcallbacks ومتغيرات عامة مقابل أسرار خادم.
 - للتستات: سيناريوهات نجاح وفشل وتكرار وتبديل حساب وفقد اتصال، بدل الاقتصار على happy path.
 
-لو حد سأل «Integration عمل إيه غير إنه كتب fetch؟» الإجابة: ربط عقود البيانات والهوية والأموال وحالة الطلب بين الطبقات، وعالج التكرار والسباقات والأخطاء حتى تكمل رحلة المستخدم بدون فقد جلسة أو تكرار طلب.
+لو حد سأل «Integration عمل إيه غير إنه كتب fetch؟» الإجابة: ربط عقود البيانات والهوية والأموال وحالة الطلب بين الطرفين، وعالج التكرار والسباقات والأخطاء حتى تكمل رحلة المستخدم بدون فقد جلسة أو تكرار طلب.
+
+## 12. عقود Sprint 3 بين البوابات الخمس والباك
+
+في Sprint 3 تم توحيد DTOs وMappers وخطأ كل بوابة داخل `front/src/modules/orders/` و`front/src/modules/notifications/`:
+
+| المسار (Backend API) | دور الواجهة والـ Adapter | ملاحظة العقد |
+|---|---|---|
+| `GET /admin/users` · `POST /admin/staff` · `PATCH /admin/users/{id}/roles` | `HttpOperationsRepository` (`StaffAccount`, `CreateStaffInput`, `UpdateUserRolesInput`) | ترجمة كود `cannot_demote_self` وربط `restaurant_id` عبر `restaurant_staff`. |
+| `POST /operations/restaurants` · `PATCH` · `menu-items` · `staff` | `HttpOperationsRepository` (`AdminRestaurant`, `AdminMenuItem`, `StaffOption`) | نفس Envelope `{ data: ... }` والأسعار نصوص Decimal بلا تقريب. |
+| `GET /kitchen/orders` · `PATCH /kitchen/orders/{id}/status` | `KitchenPage` + `HttpOperationsRepository` | ربط انتقال `confirmed -> preparing -> ready_for_pickup`. |
+| `GET /delivery/couriers` · `POST/PATCH /orders/{id}/delivery-assignment` · `GET /delivery/my-orders` · `PATCH /delivery/orders/{id}/status` | `HttpDeliveryRepository` | إظهار `deliveryAddress` والهاتف في بوابة المندوب (`courier`) فقط. |
+| `GET /notifications` · `PATCH /{id}/read` · `POST /read-all` | `HttpNotificationRepository` + `NotificationBell` | عرض عدد غير المقروء ورسائل الأحداث الـ12؛ التحقق بالعقد في `Foodify.Sprint3.postman_collection.json`. |

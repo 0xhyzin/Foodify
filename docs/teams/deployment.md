@@ -1,12 +1,16 @@
-# فريق Deployment: شرح Sprint 2
+# فريق Deployment: شرح Sprint 3
 
-هذا الشرح يوضح مسؤولية فريق النشر: تحويل نسخة الكود إلى خدمات تعمل معًا، وضبط البيئات والأسرار، وتجهيز قاعدة البيانات، ثم مراجعة الإصدار وإمكانية التراجع عنه. الشرح يعكس ملفات المستودع عند إعداد هذه الوثائق في 2026-11-03؛ إعداد الوثائق لا يعني تنفيذ نشر جديد أو فحص الخدمات الحية في هذا التاريخ.
+هذا الشرح يوضح مسؤولية فريق النشر في **Sprint 3**: تحويل نسخة الكود إلى خدمات تعمل معًا، وضبط البيئات والأسرار، وتنظيم الـ Pull Requests على GitHub، وتشخيص وإصلاح مشكلة وصول البريد الإلكتروني، ثم تطبيق migration الجديدة ورفع الإصدار بأمان.
 
 يمكن قراءة [شرح Integration](integration.md) لفهم تفاصيل التبادل بين الواجهة والباك، و[شرح الاختبارات](testing.md) لمعرفة ما تثبته الفحوص الآلية. شرح [Backend](backend.md) بالإنجليزية، وشرح [Frontend](frontend.md) بالعربية.
 
-## 1. ماذا قدّم فريق Deployment؟
+## 1. ماذا قدّم فريق Deployment حتى Sprint 3؟
 
-الفريق جهز مسار تشغيل محلي باستخدام Docker Compose، ومسار نشر مستقل للواجهة والباك، وقوالب الإعدادات لكل بيئة. وجعل تجهيز schema بالـ migrations وزرع الكتالوج عمليتين واضحتين، بدل افتراض أن تشغيل السيرفر سيجهز قاعدة البيانات تلقائيًا.
+الفريق جهز مسار تشغيل محلي باستخدام Docker Compose، ومسار نشر مستقل للواجهة (Vercel) والباك (FastAPI Cloud) وقاعدة البيانات (Aiven MySQL + Valkey). في Sprint 3 أضفنا:
+1. تشخيص وعلاج مشكلة عدم وصول إيميلات التحقق واستعادة كلمة المرور من جذورها (تعارض DMARC بين `@gmail.com` ومزود `Mailjet`).
+2. دعم 3 مزودي إرسال للبريد (`smtp` مع Gmail App Password مباشر، أو `brevo`، أو `resend`) مع محتوى `HTML Multipart` وترويسات RFC 5322 وأداة تشخيص `python -m scripts.check_email`.
+3. تنظيم الريبو على GitHub عبر **Feature Pull Requests** مفصولة (`PR #1` إلى `PR #5`) تمر كلها بفحص GitHub Actions قبل الدمج في `main`.
+4. migration `20261121_0006_sprint3_delivery_notifications.py` وسكربت `back/scripts/deploy_sprint3.sh` للتحديث الذري الآمن دون تعطل `/health/ready`.
 
 في Sprint 2 أصبح النشر يحتاج تنسيقًا أكبر: الواجهة تعتمد على كتالوج من MySQL، والطلب يعتمد على عنوان وسلة وأسعار فعلية، والدفع يحتاج مزودًا خارجيًا وcallback عامًا. لذلك نشر React وحدها لا يكفي لتشغيل الرحلة كاملة.
 
@@ -199,7 +203,23 @@ https://foodify-api.fastapicloud.dev/api/v1/auth/oauth/facebook/callback
 
 محليًا يستخدم القالب callback على `http://localhost:8000`، بينما أصل الواجهة المعتمد `http://127.0.0.1:5173`. الواجهة توحد اسم المضيف قبل بدء الجلسة في Development، لأن PKCE verifier محفوظ في `sessionStorage` الخاص بالأصل الذي بدأ OAuth.
 
-البريد في الإنتاج يمر من outbox في MySQL إلى العامل ثم Mailjet SMTP. المضيف المضبوط هو `in-v3.mailjet.com` والمنفذ 587 مع STARTTLS ومرسل موثق. قبول API طلب التسجيل يثبت جدولة الرسالة؛ قبول SMTP لها لا يثبت وصولها إلى Inbox. تُراجع حالة الرسالة لدى المزود والبريد غير المرغوب عند الفحص المقصود.
+البريد في الإنتاج يمر من `email_outbox` في MySQL إلى `EmbeddedEmailWorker`. **مشكلة Sprint 2 وتشخيصها في Sprint 3:** السجلات الحية في قاعدة Aiven أثبتت أن الرسائل الـ15 في `email_outbox` تم تسليمها إلى Mailjet SMTP (`in-v3.mailjet.com:587`) خلال 2–3 ثوانٍ وحصلت على `250 OK` (لذلك سجل العامل `sent_at` بدون أخطاء)، لكن العنوان المرسل `SMTP_FROM_EMAIL` كان على نطاق `@gmail.com` — وبسبب سياسة DMARC/SPF لحسابات البريد المجانية يرفض مزودو الاستقبال أي رسالة بـ `From: @gmail.com` صادرة من خادم Mailjet/Brevo طرف ثالث!
+
+**إصلاح Sprint 3 الكامل للبريد (`PR #1`):**
+- إضافة محتوى `HTML` متجاوب مع RTL بجانب النص العادي (`ActionEmailContent.html` في `app/infrastructure/email_content.py`) وترويسات RFC 5322 (`Date`، `Message-ID`، `Reply-To`، `formataddr` مع `SMTP_FROM_NAME`).
+- دعم اختيار مزود البريد عبر `EMAIL_PROVIDER`: إما `smtp` (مع تنظيف مسافات 16 حرفًا في **Google App Password** تلقائيًا لـ `smtp.gmail.com:587` لكي تطابق SPF/DKIM الخاصة بجوجل مباشرة!)، أو `brevo` (`xkeysib`), أو `resend` (`EMAIL_PROVIDER=resend` + `RESEND_API_KEY`).
+- تحذير تلقائي عند بدء التشغيل إذا كان `SMTP_FROM_EMAIL` نطاقًا عامًا مجانيًا عبر Relay خارجي، وسكربت فحص حي `back/.venv/bin/python -m scripts.check_email --to test@example.com`، وتنبيه عند انتهاء صلاحية رسالة في outbox.
+
+## 11. تنظيم GitHub بـ Feature Pull Requests وهجرة Sprint 3
+
+تم تقسيم إضافات Sprint 3 على المستودع `0xhyzin/Foodify` إلى **5 Pull Requests** منفصلة تمر كلها أولًا بفحص GitHub Actions (`Checks`: Frontend tests/build + Backend pytest/OpenAPI/MkDocs strict + Python syntax):
+1. **PR #1 (`fix/email-deliverability-and-providers`):** إصلاح تسليم البريد وتعدد المزودين وتشخيص `scripts.check_email`.
+2. **PR #2 (`feat/admin-portal-and-role-routing`):** فصل بوابة `/admin` وAPIs إدارة الموظفين والأدوار وتوجيه الدخول `loginDestination`.
+3. **PR #3 (`feat/sprint3-postman-and-junit-catalog`):** مجموعة `Foodify.Sprint3.postman_collection.json` وتوليد فهرس JUnit (`285` حالة، تغطية `91%`).
+4. **PR #4 (`docs/sprint3-mkdocs-handbook-and-openapi`):** تحديث عقود OpenAPI (`64` مسارًا) ودليل الفرق `MkDocs --strict`.
+5. **PR #5 (`docs/sprint3-complete-pdf-pack`):** حزمة ملفات PDF العربية الستة الكاملة لـ Sprint 3.
+
+**أهمية التسلسل الذري مع `20261121_0006`:** الهجرة `20261121_0006_sprint3_delivery_notifications.py` تضيف جداول `restaurant_staff` و`delivery_assignments` و`notifications` والعمود `assigned_preparer_id` وتحوّل الحالات القديمة (`placed -> pending`، `ready -> ready_for_pickup`، `out_for_delivery -> picked_up`). ولأن `/health/ready` في الباك يتحقق أن `applied == get_expected_revision_heads()`، يجب تشغيل `scripts.release` و`fastapi deploy` معًا عبر `back/scripts/deploy_sprint3.sh` بعد `fastapi login` حتى لا يرفض كود Sprint 2 قاعدة Sprint 3 أثناء الفاصل بينهما.
 
 ## 11. ضبط الدفع دون خلط Test وLive
 

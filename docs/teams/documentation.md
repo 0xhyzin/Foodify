@@ -1,8 +1,8 @@
-# أدوات التوثيق — استخدمنا إيه فعلًا؟
+# أدوات التوثيق — استخدمنا إيه فعلًا في Sprint 3؟
 
-استخدمنا **MkDocs** لبناء دليل الفرق من ملفات Markdown إلى صفحات HTML، و**FastAPI OpenAPI + Swagger UI** لتوثيق عقود الـAPI من الكود. واستخدمنا **تقارير JUnit** لبناء فهرس حالات الاختبار ونتائجها تلقائيًا.
+استخدمنا منظومة توثيق عملية حقيقية متكاملة مع الكود والاختبارات: **MkDocs (`--strict`)** لبناء دليل الفرق HTML، و**FastAPI OpenAPI + Swagger UI** لتوليد عقود الـ `64` مسارًا مباشرة من الكود، و**مولد تقارير JUnit XML** لفهرسة الـ `285` حالة اختبار تلقائيًا، و**Postman Collections** المفحوصة بعقود Node، و**WeasyPrint** لإنتاج حزمة الـ PDF العربية RTL، و**Graphify** لبناء خريطة علاقات الكود AST.
 
-الشرح المعماري وتحليل قرارات التصميم مكتوبان بناءً على مراجعة المصدر. MkDocs ينظم ويحوّل المحتوى، لكنه لا يستنتج وحده لماذا اخترنا سلة لكل متجر أو كيف نمنع تكرار الدفع. الفصل بين الدورين يخلّي الفريق يشرح الأداة بدقة.
+الشرح المعماري وتحليل قرارات التصميم مكتوبان بناءً على مراجعة المصدر. الأدوات تنظم أو تستخرج العقود والنتائج، لكنها لا تستنتج وحده لماذا اخترنا سلة لكل متجر أو كيف نعالج تعارض DMARC في البريد. الفصل بين الدورين يخلّي الفريق يشرح كل أداة بدقة وأمانة.
 
 ## 1. MkDocs بيعمل إيه؟
 
@@ -64,29 +64,30 @@ back/.venv/bin/python scripts/export_openapi.py
 
 ## 4. Postman دوره إيه؟
 
-Postman collections طلبات HTTP يدوية جاهزة، وليست أداة كتابة شرح المعمارية. توجد مجموعة للحسابات وأخرى لـSprint 2، ومعهما قوالب development/test/production.
+Postman collections طلبات HTTP يدوية جاهزة، وليست أداة كتابة شرح المعمارية. توجد الآن 3 مجموعات تغطي المشروع كاملًا: الحسابات (`Foodify.postman_collection.json`)، المتاجر والدفع (`Foodify.Sprint2.postman_collection.json`)، و**Sprint 3 للبوابات الخمس والأدمن والمندوب والمطبخ والإشعارات (`Foodify.Sprint3.postman_collection.json`)**، ومعها قوالب `development/test/production`.
 
-ظبطنا `base_url` ليكون أصل الباك فقط دون `/api/v1` في المجموعتين، وأضفنا مراجع طلبات browser verification وlogin وrefresh وlogout وOAuth completion. كده الفريق يقدر يشرح request وheaders وbody ويجرب endpoint بدون تخمين الصيغة.
+ظبطنا `base_url` ليكون أصل الباك فقط دون `/api/v1` في المجموعات الثلاث، وفُحصت آليًا عبر `tests/postman.test.mjs` (**7** اختبارات عقود) للتأكد من عدم تكرار `/api/v1/api/v1/` وتغطية مسارات البوابات الجديدة.
 
-المجموعات الحالية لا تحتوي assertion scripts؛ الاختبارات الآلية في ملفات pytest وNode مستقلة. استيراد collection أو إرسال طلب ناجح لا يعني إننا شغّلنا Integration Test suite.
+المجموعات نفسها يدوية لا تحتوي assertion scripts؛ الاختبارات الآلية موجودة في `back/tests` و`front/tests` و`tests/`.
 
 ## 5. فهرس الاختبارات اتعمل بإيه؟
 
-pytest وNode test runner يخرجان تقارير بصيغة JUnit XML. بعد التشغيل، `scripts/generate_test_catalog.py` يقرأ reports تحت `output/verification/` ويكتب:
+pytest وNode test runner يخرجان تقارير بصيغة JUnit XML تحت `output/verification/`. بعدها `scripts/generate_test_catalog.py` يقرأ التقارير الستة ويكتب:
 
-- `docs/teams/test-catalog.md`: أسماء كل الحالات ونتيجتها وعددها حسب المجموعة.
-- `docs/teams/assets/test-results.json`: نفس النتائج بصيغة قابلة للقراءة برمجيًا.
+- `docs/teams/test-catalog.md`: أسماء كل الـ **285** حالة ونتيجتها وعددها حسب المجموعة.
+- `docs/teams/assets/test-results.json`: نفس النتائج بصيغة JSON منظمة.
 
-يمكن تحديث المصدر بإعادة تشغيل `python scripts/generate_test_catalog.py` بعد توليد التقارير الست. فحص CI يبني MkDocs ويعيد تصدير OpenAPI من الكود، أما فهرس آخر تشغيل فيُحدّث من تقارير الاختبارات كما هو موضح في فصل الاختبارات.
+راجع [الفهرس](test-catalog.md) أو [البيانات المنظمة](assets/test-results.json) و[فصل الاختبارات](testing.md).
 
-السكربت لا يفترض أن الحالة نجحت لمجرد وجود دالة اختبار؛ يقرأ `failure` و`error` و`skipped` من التقرير الفعلي. القيم Parameterized تظهر كحالات منفصلة. [شاهد الفهرس](test-catalog.md) أو [البيانات المنظمة](assets/test-results.json).
+## 6. WeasyPrint وGraphify (حزمة PDF وخريطة الكود)
 
-عند تغيير الاختبارات: شغّل الأوامر الموثقة في [فصل الاختبارات](testing.md)، ثم شغّل مولد الفهرس، وبعدها MkDocs build. ملفات نتائج آخر تشغيل لا تثبت حالة أي تعديلات لاحقة لم تختبر.
+- **WeasyPrint + Noto Sans Arabic + DejaVu Sans Mono:** يحوّل HTML/CSS مصمّمًا باتجاه `dir="rtl"` وعزل المصطلحات الإنجليزية `<bdi dir="ltr">` إلى **6** ملفات PDF احترافية في `output/pdf/foodify-sprint-3-*-ar.pdf`، مع معاينة بصرية عبر `pdftoppm`.
+- **Graphify (تحليل شجرة AST في `graphify-out/`):** يبني رسمًا بيانيًا للعلاقات والـ imports داخل `back/app` و`front/src` (`graphify extract --code-only`) ليساعد الفريق في استكشاف تبعيات الوحدات بسرعة.
 
-## 6. صياغة الفريق أثناء العرض
+## 7. صياغة الفريق أثناء العرض
 
 صياغة دقيقة ممكن الفريق يستخدمها:
 
-> استخدمنا MkDocs لبناء دليل الفرق من Markdown، وFastAPI ولّد عقود OpenAPI من الـDTOs والـroutes وعرضها في Swagger UI. وثّقنا قرارات المعمارية وتدفق المستخدم من مراجعة الكود، وربطنا النتائج بتقارير JUnit مولّدة من تشغيل pytest وNode test runner. كده التوثيق فيه شرح قابل للقراءة، ومرجع API، ودليل على نتائج الاختبارات.
+> استخدمنا **MkDocs (`--strict`)** لبناء دليل الفرق، و**FastAPI OpenAPI + Swagger UI** لتوليد عقود الـ64 endpoint مباشرة من DTOs (`export_openapi.py`)، و**مولد JUnit XML** (`generate_test_catalog.py`) لتوثيق 285 اختبارًا بنتائجها الفعلية، وعقود **Postman** للـSprint 1–3، و**WeasyPrint** لإنتاج أدلة PDF العربية، و**Graphify** لرسم خريطة الكود.
 
-ده يوضح الأدوات اللي اشتغلت فعليًا، وما ينسبش كتابة كل الشرح أو تنفيذ الاختبارات إلى Swagger أو Postman.
+ده يوضح الأدوات اللي اشتغلت فعليًا، وما ينسبش كتابة قرارات الهندسة أو تنفيذ الاختبارات إلى Swagger أو Postman.

@@ -1,8 +1,8 @@
 # Unit Tests وIntegration Tests — إيه اللي اختبرناه؟
 
-في المراجعة الحالية استبدلنا اختبارات Flask القديمة باختبارات للتطبيق الحالي FastAPI، وأضفنا اختبارات للفرونت والـproxy والعقود. النتائج الفعلية لكل مجموعة ولكل حالة موجودة في [الفهرس المولّد](test-catalog.md)، ومصدره تقارير JUnit من تشغيل الاختبارات.
+في المراجعة الحالية استبدلنا اختبارات Flask القديمة باختبارات للتطبيق الحالي FastAPI، وأضفنا اختبارات Sprint 3 للفرونت والباك والـproxy والعقود وإرسال البريد وبوابة `/admin`. النتائج الفعلية لكل مجموعة ولكل حالة موجودة في [الفهرس المولّد](test-catalog.md)، ومصدره تقارير JUnit من تشغيل الاختبارات.
 
-نتيجة مراجعة **2026-11-03: 243 حالة ناجحة، صفر فشل وصفر تجاهل**. الباك172 حالة: 37 Unit و135 Integration. الفرونت54: 48 Unit/Regression و6 Integration. الوسيط12 والعقود5. تغطية كود الباك المقاسة **89.41%** للأسطر التنفيذية؛ هذه النسبة لا تعني اكتمال فحص الخدمات الحية.
+نتيجة مراجعة **Sprint 3 (2026-11-25): 285 حالة ناجحة، صفر فشل وصفر تجاهل**. الباك **207** حالة: **55 Unit** و**152 Integration**. الفرونت **59** حالة: **49 Unit/Regression** و**10 Integration**. الوسيط **12** وعقود Postman **7** (إجمالي `npm test` = **78** حالة JS). تغطية كود الباك المقاسة **`91%`** (`5,263 / 5,754` سطرًا تنفيذيًا عبر `pytest --cov=app`)؛ هذه النسبة لا تعني اكتمال فحص الخدمات الحية.
 
 ## 1. الفرق ببساطة
 
@@ -60,27 +60,32 @@
 | InstaPay | claim لا يساوي paid، مراجعة مخولة، ومنع استخدام نفس reference لدفع طلبين مع rollback واضح. |
 | OAuth | رحلة provider بديل تنشئ عميلًا يحتاج استكمال بيانات، verifier مطلوب، state لا يعاد استخدامه، ولا ربط صامتًا لبريد حساب قائم. |
 | حدود الأمان | JWT غير صحيح/منتهي/بسياق خاطئ، CORS وOrigin وHost، HTTP headers، وenvelope أخطاء لا يكشف مدخلات حساسة. |
+| التوصيل والمندوب (`test_sprint3_delivery.py`) | تعيين وإعادة تعيين المندوب، عرض عنوان العميل الكامل وهاتفه للمندوب المعيّن فقط، انتقال `ready_for_pickup -> picked_up -> delivered`، ومنع اختطاف الطلب من مندوب آخر (`403`). |
+| المطبخ والمطاعم (`test_sprint3_kitchen_and_restaurants.py`) | عزل بوابة المطبخ `/kitchen/orders`، إتمام التحضير، إضافة مطعم وأصناف منيو، وتعيين المحضّر والموظفين بنطاق `restaurant_staff`. |
+| الإشعارات والاتساق (`test_sprint3_notifications_and_consistency.py`) | توليد الـ12 حدثًا بعد commit بأمان (دون تعطيل الطلب لو فشل الإشعار)، عزل `/notifications` لكل مستخدم، والإلغاء من العميل أو المدير. |
+| الأدمن والهجرة (`test_sprint3_admin.py`) | إنشاء موظف مفعّل عبر `/admin/staff`، قراءة وتعديل الأدوار، إيقاف الجلسات، منع إسقاط الأدمن لنفسه (`409 cannot_demote_self`)، وتوافق `alembic head = 20261121_0006` + `seed_reference_data`. |
+| تسليم البريد (`test_email_delivery.py`) | وحدة: توليد HTML Multipart وترويسات RFC 5322، تنظيف مسافات Gmail App Password، اكتشاف رفض المستلمين، تحذير DMARC عند استخدام `@gmail.com` مع Mailjet/Brevo، ومرسل `Resend` و`Brevo`. |
 
 هذه الاختبارات تستخدم الراوترات والخدمات والمستودعات الفعلية. مزود OAuth والبريد وPaymob وrate limiter الخارجي لهم بدائل؛ لم يحدث تحصيل أو إرسال بريد إلى مستخدم أثناء المجموعة.
 
 ## 6. Unit Tests للفرونت بتعمل إيه؟
 
-الملف `front/tests/frontend-regressions.test.mjs` يحتوي48 حالة Regression/Unit. يختبر وحدات التطبيق مع بدائل للاعتماديات:
+الملف `front/tests/frontend-regressions.test.mjs` يحتوي **49** حالة Regression/Unit. يختبر وحدات التطبيق مع بدائل للاعتماديات:
 
 - قبول Paymob domains ومساراتها المحددة، ورفض HTTP والدومين المشابه وcredentials وfragment والمفاتيح المكررة/الفارغة والرابط المنتهي.
-- حفظ المسار والـfragment عند تحويل localhost إلى127، وتطبيع روابط البريد وOAuth إلى HashRouter.
+- حفظ المسار والـfragment عند تحويل localhost إلى 127، وتطبيع روابط البريد وOAuth إلى HashRouter.
 - تجميع refresh المتزامن، ومنع response متأخر من مسح جلسة جديدة أو استعادة جلسة بعد clear/logout.
-- منع إعادة request من حسابA تحت حسابB، وإعادة استخدام token مجدد للحساب نفسه.
-- اعتماد جلسة تأكيد البريد والانتقال للموبايل ثم العنوان حسب البيانات الناقصة.
+- منع إعادة request من حساب A تحت حساب B، وإعادة استخدام token مجدد للحساب نفسه.
+- اعتماد جلسة تأكيد البريد والانتقال للموبايل ثم العنوان حسب البيانات الناقصة، وتوجيه الأدوار عند الدخول في `loginDestination`.
 - verifier في OAuth، تنظيفه بعد الاستهلاك، ورفض وجهات authorization الخبيثة.
-- رفض quantity غير صحيحة وتمرير cart revision وidempotency key.
-- عدم عرض مرحلة تجهيز لطلب `cancelled` أو `awaiting_payment` أو حالة غير معروفة.
+- رفض `quantity` غير صحيحة وتمرير `cart revision` و`idempotency key`.
+- عدم عرض مرحلة تجهيز لطلب `cancelled` أو `awaiting_payment` أو حالة غير معروفة، وفصل انتقالات المدير والمحضّر والمندوب في `role stage helpers`.
 
 الاختبارات تحمل TypeScript عبر Vite، لكنها لا ترسم React DOM ولا تضغط أزرارًا في متصفح. اختبار helper مرحلة الطلب يثبت قراره البرمجي؛ لا يثبت وحده تنسيق الزر على شاشة موبايل.
 
 ## 7. Integration Tests للفرونت بتعمل إيه؟
 
-الملف `front/tests/frontend-integration.test.mjs` يركّب وحدات حقيقية مع بعض، وحد HTTP فقط له بديل:
+الملف `front/tests/frontend-integration.test.mjs` يركّب وحدات حقيقية مع بعض (**10** حالات)، وحد HTTP فقط له بديل:
 
 | الحالة | الأجزاء المتصلة | النتيجة المطلوبة |
 |---|---|---|
@@ -90,12 +95,16 @@
 | Checkout | Use Case + order repository + HTTP client + mapper. | headers وsnake_case body وrevision صحيحة، وorder domain صحيح. |
 | بدء Paymob | Payment repository + HTTP client + destination validator. | رابط وصلاحية صحيحتان، دون اتصال فعلي بـPaymob. |
 | تعارض سعر | Order repository + HTTP error reader. | الاحتفاظ بكود الخطأ وrequest ID، وعدم عرض نص تشخيص خام. |
+| الإلغاء وبيانات Sprint 3 | Order mapper + HTTP client. | قراءة العنوان المنظم ومعرفات المحضّر والمندوب ومعرف المعاملة وحالة الإلغاء. |
+| بوابة المندوب (`DeliveryRepository`) | Delivery repository + HTTP client + mapper. | قراءة `/delivery/couriers` و`/delivery/my-orders` وتعيين/إعادة تعيين المندوب وتحديث `picked_up`/`delivered`. |
+| الإشعارات والمطبخ والمنيو | Notification + Operations repositories + HTTP client. | قراءة صندوق `/notifications` وتحديد المقروء، وإنشاء مطعم وصنف، وتعيين المحضّر وتحديث `/kitchen/orders`. |
+| بوابة الأدمن (`/admin`) | Operations repository + Admin DTOs + HTTP client. | تغطية `GET /admin/users` و`POST /admin/staff` و`PATCH /admin/users/{id}/roles`. |
 
 ## 8. الـproxy وPostman
 
 **12 اختبارًا للـproxy:** نقل الفلاتر وheaders والكوكيز المتعددة، توقيع IP، رفض origins غير آمنة وطرق ومسارات غير صالحة، حد body، رفض redirect غير متوقع، وتوحيد خطأ انقطاع الباك. الـfetch الخارجي مستبدل؛ هذه فحوص معزولة لوظيفة الوسيط.
 
-**5 اختبارات عقود Postman:** بادئة `/api/v1` مرة واحدة، base_url موحدة كأصل، browser verification بالـheaders الصحيحة، ومتغيرات credentials تطابق templates. هذه فحوص لصحة ملفات العقد؛ لا ترسل طلبات حقيقية من Postman.
+**7 اختبارات عقود Postman:** بادئة `/api/v1` مرة واحدة عبر مجموعات Sprint 1 وSprint 2 وSprint 3 (`Foodify.Sprint3.postman_collection.json`)، `base_url` موحدة كأصل، browser verification بالـheaders الصحيحة، متغيرات credentials، والتحقق من تغطية مسارات `/admin/staff` و`/kitchen/orders` و`/delivery/my-orders` و`/notifications`. هذه فحوص لصحة ملفات العقد؛ لا ترسل طلبات حقيقية من Postman.
 
 ## 9. تشغيل المجموعات
 

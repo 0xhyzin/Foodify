@@ -1,8 +1,8 @@
-# Backend Team — Sprint 2 Explained
+# Backend Team — Sprint 2 & Sprint 3 Explained
 
-**Language: English. Reviewed: 3 November 2026.**
+**Language: English. Reviewed: 25 November 2026.**
 
-This is a teaching guide for explaining the backend team's work. It describes code that exists in this repository, why it was structured that way, and how a request travels through it. The implementation reference is `back/README_SPRINT_2.md`.
+This is a teaching guide for explaining the backend team's work across **Sprint 2** and **Sprint 3**. It describes the modular monolith code that exists in this repository (`64` OpenAPI paths, `207` passing pytest cases, `91%` statement coverage), why it was structured that way, and how every request travels through it. The Sprint 2 baseline reference is `back/README_SPRINT_2.md`.
 
 ## 1. The team's responsibility
 
@@ -294,4 +294,11 @@ A correct presentation statement is: “We used FastAPI OpenAPI and Swagger UI f
 
 **Do the tests prove production MySQL concurrency?** No. They verify application rules and persistence behavior with SQLite; MySQL-specific locking needs staging verification.
 
-**What still needs a future sprint?** Store-owner tenancy, courier assignment/GPS, automatic reconciliation, initiating refunds, and additional live-provider operational checks.
+**What was delivered in Sprint 3?** Clean vertical slices inside the same modular monolith:
+1. **Separated Staff & Role Administration (`app/users/admin/`):** `GET /api/v1/admin/users` (`staff:read`), `POST /api/v1/admin/staff` (`staff:manage` — creates pre-verified active staff accounts optionally linked via `restaurant_staff`), and `PATCH /api/v1/admin/users/{user_id}/roles` (`roles:manage`, revoking refresh sessions on deactivation and blocking self-demotion with `409 cannot_demote_self`).
+2. **Restaurant & Menu Management + Staff Scoping (`app/restaurants/manage/`, `RoleType.RESTAURANT_MANAGER`):** Adding/editing Port Said & Port Fuad restaurants, menu items, and linking staff via `restaurant_staff` under Alembic migration `20261121_0006`.
+3. **Kitchen Preparer & Order Cancellation (`app/orders/kitchen/`, `assign_preparer/`, `cancel_order/`):** Dedicated `/kitchen/orders` queue, preparer handoff (`confirmed -> preparing -> ready_for_pickup`), and customer/manager cancellation.
+4. **Delivery & Courier Dispatch (`app/delivery/`):** Assigning/re-assigning couriers (`/orders/{id}/delivery-assignment`), courier-only view of full customer delivery address + phone (`/delivery/my-orders`), and courier pickup/delivery transitions (`picked_up -> delivered`).
+5. **In-App Notifications (`app/notifications/`):** 12 order lifecycle events stored in `notifications` using isolated post-commit sessions so notification failure never aborts order transactions.
+6. **Multi-Provider Email Deliverability Fix (`app/infrastructure/`):** Responsive HTML + plain-text multipart emails (`email_content.py`), RFC 5322 `Date`/`Message-ID`/`formataddr`, Google App Password whitespace normalization, selectable `EMAIL_PROVIDER` (`smtp`, `brevo`, `resend`), startup DMARC warning for `@gmail.com` senders on third-party relays, and `python -m scripts.check_email`.
+7. **Verification:** **207 passing tests** (`55` unit + `152` integration) at **`91%` statement coverage** (`5,263 / 5,754` statements).
