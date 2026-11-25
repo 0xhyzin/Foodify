@@ -1,0 +1,566 @@
+{
+  "info": {
+    "name": "Foodify — Sprint 3 Separated Portals, Delivery & Notifications",
+    "description": "مجموعة يدوية لـ Sprint 3 تغطي بوابة الأدمن (/admin)، وإدارة المطاعم والمنيو والعمليات (/operations & /manager)، وتحضير الطلبات (/kitchen)، وتعيين وتوصيل المندوبين (/delivery)، والإشعارات الفورية (/notifications). base_url هو أصل الباك فقط دون /api/v1.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "staff_user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "preparer_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "delivery_person_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "restaurant_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "menu_item_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "order_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "notification_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Admin — Staff & Roles",
+      "item": [
+        {
+          "name": "List users and staff directory",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/admin/users?limit=50&offset=0",
+            "description": "يتطلب صلاحية staff:read (admin أو operations_manager)."
+          }
+        },
+        {
+          "name": "Create verified staff account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Port Said Manager\",\n  \"email\": \"manager.portsaid@example.com\",\n  \"password\": \"StrongStaffPass2026!\",\n  \"phone\": \"+201001234567\",\n  \"roles\": [\"restaurant_manager\"],\n  \"restaurant_id\": \"{{restaurant_id}}\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/admin/staff",
+            "description": "ينشئ حساب موظف مفعّل فورًا دون انتظار تأكيد بريد. يتطلب admin (staff:manage)."
+          }
+        },
+        {
+          "name": "Update user roles and status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roles\": [\"order_preparer\"],\n  \"is_active\": true,\n  \"restaurant_id\": \"{{restaurant_id}}\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/admin/users/{{staff_user_id}}/roles",
+            "description": "تحديث الأدوار أو إيقاف الحساب مع سحب الجلسات (roles:manage). يمنع إسقاط الأدمن لنفسه (409 cannot_demote_self)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Operations & Order Cancellation",
+      "item": [
+        {
+          "name": "List managed restaurants",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/operations/restaurants",
+            "description": "يعرض كل المطاعم لمدير العمليات والأدمن، أو المطاعم المربوطة فقط لـ restaurant_manager."
+          }
+        },
+        {
+          "name": "List restaurant operations orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/restaurant/orders?limit=20&offset=0",
+            "description": "متابعة طلبات المطاعم مع العناوين وتفاصيل المندوب والمحضّر."
+          }
+        },
+        {
+          "name": "Advance operations order status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\",\n  \"note\": \"تم تأكيد الطلب من المدير\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/operations/orders/{{order_id}}/status",
+            "description": "تحديث المرحلة التشغيلية للطلب."
+          }
+        },
+        {
+          "name": "Cancel order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"إلغاء بناءً على طلب العميل قبل التحضير\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/orders/{{order_id}}/cancel",
+            "description": "إلغاء الطلب لصاحب الطلب أو المدير المخوّل."
+          }
+        },
+        {
+          "name": "List available preparers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/operations/preparers",
+            "description": "قائمة محضّري الطلبات المتاحين للتعيين."
+          }
+        },
+        {
+          "name": "Assign preparer to order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preparer_id\": \"{{preparer_id}}\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/orders/{{order_id}}/preparer-assignment",
+            "description": "تحديد محضّر الطلب (POST للتعيين الأول)."
+          }
+        },
+        {
+          "name": "Reassign preparer on order",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preparer_id\": \"{{preparer_id}}\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/orders/{{order_id}}/preparer-assignment",
+            "description": "إعادة إسناد الطلب لمحضّر آخر (PATCH)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Kitchen — Order Preparer",
+      "item": [
+        {
+          "name": "List kitchen queue orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/kitchen/orders",
+            "description": "قائمة الطلبات المطلوب تحضيرها لبوابة المطبخ (/kitchen)."
+          }
+        },
+        {
+          "name": "Confirm preparation completed",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ready_for_pickup\",\n  \"note\": \"الطلب جاهز للاستلام من المندوب\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/kitchen/orders/{{order_id}}/status",
+            "description": "تحويل الحالة من confirmed -> preparing -> ready_for_pickup وإشعار المندوب والمدير."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Restaurant & Menu Management",
+      "item": [
+        {
+          "name": "Create restaurant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"مطعم بورسعيد للمأكولات البحرية\",\n  \"category\": \"Seafood\",\n  \"kind\": \"restaurant\",\n  \"address\": \"شارع طرح البحر، حي الشرق، بورسعيد\",\n  \"delivery_fee\": \"25.00\",\n  \"delivery_minutes\": 35,\n  \"artwork\": \"saffron\",\n  \"is_active\": true\n}"
+            },
+            "url": "{{base_url}}/api/v1/operations/restaurants",
+            "description": "إضافة مطعم جديد في بورسعيد أو بورفؤاد."
+          }
+        },
+        {
+          "name": "Update restaurant details",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"delivery_fee\": \"30.00\",\n  \"delivery_minutes\": 30\n}"
+            },
+            "url": "{{base_url}}/api/v1/operations/restaurants/{{restaurant_id}}",
+            "description": "تعديل بيانات أو تفعيل مطعم."
+          }
+        },
+        {
+          "name": "Create menu item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"وجبة جمبري مشوي بورسعيدي\",\n  \"category\": \"أطباق رئيسية\",\n  \"price\": \"220.00\",\n  \"description\": \"جمبري طازج مع أرز صيادية وسلطة طحينة\",\n  \"artwork\": \"saffron\",\n  \"is_available\": true\n}"
+            },
+            "url": "{{base_url}}/api/v1/operations/restaurants/{{restaurant_id}}/menu-items",
+            "description": "إضافة صنف جديد لقائمة المطعم."
+          }
+        },
+        {
+          "name": "Update menu item",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": \"235.00\",\n  \"is_available\": true\n}"
+            },
+            "url": "{{base_url}}/api/v1/operations/restaurants/{{restaurant_id}}/menu-items/{{menu_item_id}}",
+            "description": "تحديث السعر أو التوفر لصنف في القائمة."
+          }
+        },
+        {
+          "name": "Assign staff user to restaurant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{staff_user_id}}\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/operations/restaurants/{{restaurant_id}}/staff",
+            "description": "ربط مدير أو محضّر بنطاق المطعم في جدول restaurant_staff."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Delivery — Courier & Dispatch",
+      "item": [
+        {
+          "name": "List delivery couriers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/delivery/couriers",
+            "description": "قائمة مندوبي التوصيل وحالتهم للمدير."
+          }
+        },
+        {
+          "name": "Assign courier to order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"delivery_person_id\": \"{{delivery_person_id}}\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/orders/{{order_id}}/delivery-assignment",
+            "description": "تخصيص مندوب لتوصيل الطلب وإشعاره فورًا."
+          }
+        },
+        {
+          "name": "Reassign courier on order",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"new_delivery_person_id\": \"{{delivery_person_id}}\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/orders/{{order_id}}/delivery-assignment",
+            "description": "إعادة إسناد الطلب لمندوب آخر وإشعار المندوب السابق والحالي."
+          }
+        },
+        {
+          "name": "List my assigned delivery orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/delivery/my-orders",
+            "description": "قائمة الطلبات المسندة للمندوب الحالي شاملةً عنوان العميل الكامل ورقم الهاتف."
+          }
+        },
+        {
+          "name": "Update delivery order status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"picked_up\",\n  \"note\": \"تم استلام الطلب وجاري التوصيل لعنوان العميل\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/delivery/orders/{{order_id}}/status",
+            "description": "المندوب يؤكد الاستلام (picked_up) ثم التسليم (delivered)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Notifications",
+      "item": [
+        {
+          "name": "List user notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/notifications?unread_only=false&limit=30",
+            "description": "جلب الإشعارات داخل التطبيق للعميل والمحضّر والمدير والمندوب."
+          }
+        },
+        {
+          "name": "Mark one notification read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/notifications/{{notification_id}}/read",
+            "description": "تعليم إشعار محدد كمقروء."
+          }
+        },
+        {
+          "name": "Mark all notifications read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/v1/notifications/read-all",
+            "description": "تعليم كل الإشعارات كمقروءة."
+          }
+        }
+      ]
+    }
+  ]
+}

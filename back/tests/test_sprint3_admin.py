@@ -141,3 +141,39 @@ def test_admin_updates_roles_deactivates_sessions_and_blocks_self_demotion(
         self_suspend.status_code == 409
         and self_suspend.json()["error"]["code"] == "cannot_demote_self"
     )
+
+
+def test_alembic_head_and_reference_seed_idempotency(db):
+    from alembic.config import Config
+    from alembic.script import ScriptDirectory
+    from sqlalchemy import select
+
+    from app.core.config import PROJECT_ROOT
+    from app.infrastructure.database import get_expected_revision_heads
+    from app.infrastructure.models import Role
+    from scripts.seed import seed_reference_data
+
+    assert get_expected_revision_heads() == frozenset({"20261121_0006"})
+    script_dir = ScriptDirectory.from_config(Config(str(PROJECT_ROOT / "alembic.ini")))
+    revisions = [rev.revision for rev in script_dir.walk_revisions()]
+    assert revisions[0] == "20261121_0006"
+    assert "20261031_0005" in revisions
+
+    second_pass = seed_reference_data(db)
+    assert second_pass == {
+        "roles_created": 0,
+        "permissions_created": 0,
+        "role_permission_links_added": 0,
+        "token_types_created": 0,
+        "names_updated": 0,
+    }
+    role_codes = set(db.scalars(select(Role.code)))
+    assert {
+        "customer",
+        "admin",
+        "operations_manager",
+        "restaurant_manager",
+        "order_preparer",
+        "courier",
+    }.issubset(role_codes)
+

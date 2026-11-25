@@ -6,12 +6,12 @@
 
 | المجموعة | الحالات | ناجح | فاشل | متجاهل |
 |---|---:|---:|---:|---:|
-| Backend — Unit | 37 | 37 | 0 | 0 |
-| Backend — Integration | 135 | 135 | 0 | 0 |
-| Frontend — Unit | 48 | 48 | 0 | 0 |
-| Frontend — Integration | 6 | 6 | 0 | 0 |
+| Backend — Unit | 55 | 55 | 0 | 0 |
+| Backend — Integration | 152 | 152 | 0 | 0 |
+| Frontend — Unit | 49 | 49 | 0 | 0 |
+| Frontend — Integration | 10 | 10 | 0 | 0 |
 | Vercel proxy — isolated handler | 12 | 12 | 0 | 0 |
-| Postman — contracts | 5 | 5 | 0 | 0 |
+| Postman — contracts | 7 | 7 | 0 | 0 |
 
 ## Backend — Unit
 
@@ -27,6 +27,12 @@
 | `test_confirmation_transaction_commits_only_with_issued_session[None]` | ناجح |
 | `test_confirmation_transaction_commits_only_with_issued_session[issuer]` | ناجح |
 | `test_confirmation_transaction_commits_only_with_issued_session[commit]` | ناجح |
+| `test_render_action_email_builds_safe_html_and_plain_text` | ناجح |
+| `test_smtp_sender_attaches_rfc_headers_html_part_and_normalizes_gmail_app_password` | ناجح |
+| `test_smtp_sender_raises_unavailable_when_recipient_is_refused` | ناجح |
+| `test_brevo_sender_includes_html_and_rejects_non_201_202` | ناجح |
+| `test_resend_adapter_dispatches_and_handles_errors` | ناجح |
+| `test_free_webmail_via_third_party_relay_logs_dmarc_warning` | ناجح |
 | `test_unsigned_or_invalid_hmac_cannot_settle_payment[]` | ناجح |
 | `test_unsigned_or_invalid_hmac_cannot_settle_payment[00]` | ناجح |
 | `test_unsigned_or_invalid_hmac_cannot_settle_payment[signature2]` | ناجح |
@@ -54,6 +60,18 @@
 | `test_simulation_is_disabled_in_production` | ناجح |
 | `test_redis_limiter_hashes_identifiers_and_sets_retry_after` | ناجح |
 | `test_redis_failure_fails_closed` | ناجح |
+| `test_notification_templates_cover_all_sprint3_events[order_accepted]` | ناجح |
+| `test_notification_templates_cover_all_sprint3_events[order_rejected]` | ناجح |
+| `test_notification_templates_cover_all_sprint3_events[order_preparing]` | ناجح |
+| `test_notification_templates_cover_all_sprint3_events[order_ready_for_pickup]` | ناجح |
+| `test_notification_templates_cover_all_sprint3_events[delivery_assigned]` | ناجح |
+| `test_notification_templates_cover_all_sprint3_events[delivery_reassigned]` | ناجح |
+| `test_notification_templates_cover_all_sprint3_events[order_picked_up]` | ناجح |
+| `test_notification_templates_cover_all_sprint3_events[order_delivered]` | ناجح |
+| `test_notification_templates_cover_all_sprint3_events[payment_failed]` | ناجح |
+| `test_notification_templates_cover_all_sprint3_events[order_cancelled]` | ناجح |
+| `test_notification_templates_cover_all_sprint3_events[order_assigned_to_preparer]` | ناجح |
+| `test_notification_templates_cover_all_sprint3_events[order_ready_for_courier_pickup]` | ناجح |
 
 ## Backend — Integration
 
@@ -194,6 +212,23 @@
 | `test_security_headers_are_present` | ناجح |
 | `test_disallowed_cors_origin_not_reflected` | ناجح |
 | `test_allowed_cors_supports_cookie_transport` | ناجح |
+| `test_admin_creates_staff_and_they_can_login_immediately` | ناجح |
+| `test_admin_user_directory_permissions_and_filters` | ناجح |
+| `test_admin_updates_roles_deactivates_sessions_and_blocks_self_demotion` | ناجح |
+| `test_alembic_head_and_reference_seed_idempotency` | ناجح |
+| `test_managed_restaurants_and_cross_restaurant_scoping` | ناجح |
+| `test_manager_rejection_is_terminal_and_blocks_further_transitions` | ناجح |
+| `test_delivery_assignment_validation_and_duplicate_guards` | ناجح |
+| `test_reassignment_my_orders_isolation_and_post_pickup_lock` | ناجح |
+| `test_courier_cannot_pickup_before_ready_or_bypass_transitions` | ناجح |
+| `test_order_cancellation_rules_before_and_after_acceptance` | ناجح |
+| `test_manager_can_create_and_update_restaurants_menu_items_and_staff` | ناجح |
+| `test_preparer_assignment_kitchen_flow_and_courier_structured_address` | ناجح |
+| `test_all_fulfillment_and_delivery_notifications_and_isolation` | ناجح |
+| `test_rejection_and_cancellation_emit_expected_notifications` | ناجح |
+| `test_notification_dispatch_failure_does_not_corrupt_order_transition` | ناجح |
+| `test_payment_failure_notifies_customer_blocks_fulfillment_and_allows_retry` | ناجح |
+| `test_rejected_instapay_transfer_emits_payment_failed_notification` | ناجح |
 
 ## Frontend — Unit
 
@@ -247,6 +282,7 @@
 | `cart rejects invalid quantity NaN before HTTP` | ناجح |
 | `cart update preserves merchant scope and checkout passes server revision and idempotency key` | ناجح |
 | `operations only advances active fulfillment stages and never reopens cancelled or unpaid orders` | ناجح |
+| `role stage helpers separate manager, kitchen, and courier transitions strictly` | ناجح |
 
 ## Frontend — Integration
 
@@ -258,6 +294,10 @@
 | `checkout use case composes its HTTP DTO, idempotency header and mapped order response` | ناجح |
 | `payment HTTP response passes through the real Paymob destination and expiry validator` | ناجح |
 | `checkout conflicts retain server error codes and request IDs through the HTTP boundary` | ناجح |
+| `order cancel and Sprint 3 structured address, transaction IDs, preparer, and courier fields map cleanly` | ناجح |
+| `delivery repository covers couriers, assign/reassign, my-orders, and courier PICKED_UP/DELIVERED status` | ناجح |
+| `notification and operations repositories cover unread inbox, restaurant/menu creation, preparers, and kitchen flow` | ناجح |
+| `operations repository covers admin listUsers, createStaff, and updateUserRoles contracts` | ناجح |
 
 ## Vercel proxy — isolated handler
 
@@ -282,6 +322,8 @@
 |---|---|
 | `Foodify.postman_collection.json uses one /api/v1 prefix with the shared environment origin` | ناجح |
 | `Foodify.Sprint2.postman_collection.json uses one /api/v1 prefix with the shared environment origin` | ناجح |
+| `Foodify.Sprint3.postman_collection.json uses one /api/v1 prefix with the shared environment origin` | ناجح |
 | `all Postman environments define a backend origin without a path prefix` | ناجح |
 | `browser email confirmation reference uses the protected session transport` | ناجح |
 | `browser login references the credential variables already supplied by each environment` | ناجح |
+| `Sprint 3 Postman collection covers admin, kitchen, delivery, and notifications portals` | ناجح |
