@@ -109,7 +109,9 @@ class AdminUsersService:
         if target is None:
             raise AppError("staff_user_not_found", "User not found.", 404)
         if target.id == actor.id and (
-            RoleType.ADMIN not in payload.roles or payload.is_active is False
+            RoleType.ADMIN not in payload.roles
+            or payload.is_active is False
+            or payload.email_verified is False
         ):
             raise AppError(
                 "cannot_demote_self",
@@ -123,6 +125,8 @@ class AdminUsersService:
             target.is_active = payload.is_active
             if payload.is_active is False:
                 self.sessions.revoke_all(target.id)
+        if payload.email_verified is not None:
+            target.is_email_verified = payload.email_verified
 
         restaurant_id = str(payload.restaurant_id) if payload.restaurant_id else None
         if restaurant_id is not None:

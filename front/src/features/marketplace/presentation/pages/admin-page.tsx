@@ -77,7 +77,7 @@ function AdminUserCard({
   );
   const isSelf = account.id === currentAdminId;
 
-  async function save(nextIsActive?: boolean) {
+  async function save(nextIsActive?: boolean, nextEmailVerified?: boolean) {
     if (busy) return;
     setBusy(true);
     setError("");
@@ -86,9 +86,10 @@ function AdminUserCard({
       await services.operations.updateUserRoles(account.id, {
         roles,
         isActive: nextIsActive,
+        emailVerified: nextEmailVerified,
         restaurantId: needsRestaurant && restaurantId ? restaurantId : undefined,
       });
-      setSaved("تم حفظ الصلاحيات بنجاح.");
+      setSaved("تم حفظ التعديلات بنجاح.");
       onUpdated();
     } catch (cause) {
       setError(getErrorMessage(cause));
@@ -112,9 +113,14 @@ function AdminUserCard({
             ) : null}
           </p>
         </div>
-        <span className={account.isActive ? "mp-status is-accepted" : "mp-status is-rejected"}>
-          {account.isActive ? "نشط" : "موقوف"}
-        </span>
+        <div className="mp-inline-actions">
+          {!account.emailVerified ? (
+            <span className="mp-status is-pending">بريد غير مؤكد</span>
+          ) : null}
+          <span className={account.isActive ? "mp-status is-accepted" : "mp-status is-rejected"}>
+            {account.isActive ? "نشط" : "موقوف"}
+          </span>
+        </div>
       </div>
 
       <div className="mp-role-checks" role="group" aria-label={`أدوار ${account.name}`}>
@@ -153,6 +159,15 @@ function AdminUserCard({
         <Button loading={busy} onClick={() => void save(account.isActive)}>
           حفظ الأدوار
         </Button>
+        {!account.emailVerified ? (
+          <Button
+            variant="secondary"
+            loading={busy}
+            onClick={() => void save(account.isActive, true)}
+          >
+            تأكيد البريد يدويًا
+          </Button>
+        ) : null}
         {!isSelf ? (
           <Button
             variant="secondary"

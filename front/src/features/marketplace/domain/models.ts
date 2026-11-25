@@ -200,6 +200,7 @@ export interface CreateStaffInput {
 export interface UpdateUserRolesInput {
   roles: RoleCode[];
   isActive?: boolean;
+  emailVerified?: boolean;
   restaurantId?: string | null;
 }
 export interface OrderEvent {

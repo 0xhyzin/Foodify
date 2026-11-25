@@ -239,6 +239,7 @@ export class HttpOperationsRepository implements OperationsRepository {
         body: compactBody({
           roles: input.roles,
           is_active: input.isActive,
+          email_verified: input.emailVerified,
           restaurant_id: input.restaurantId,
         }),
       },

@@ -36,6 +36,7 @@ class CreateStaffRequest(EmailRequest):
 class UpdateUserRolesRequest(APIModel):
     roles: list[RoleType] = Field(min_length=1, max_length=6)
     is_active: bool | None = None
+    email_verified: bool | None = None
     restaurant_id: UUID | None = None
 
 

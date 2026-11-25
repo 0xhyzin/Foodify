@@ -14749,6 +14749,17 @@
             ],
             "title": "Is Active"
           },
+          "email_verified": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email Verified"
+          },
           "restaurant_id": {
             "anyOf": [
               {

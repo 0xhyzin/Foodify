@@ -142,6 +142,28 @@ def test_admin_updates_roles_deactivates_sessions_and_blocks_self_demotion(
         and self_suspend.json()["error"]["code"] == "cannot_demote_self"
     )
 
+    # Admin can manually verify an unverified customer account so they can login immediately.
+    from conftest import register
+
+    assert (
+        register(client, name="Unverified Customer", email="pending.verify@example.com").status_code
+        == 202
+    )
+    pending_id = next(
+        u["id"]
+        for u in client.get("/api/v1/admin/users?search=pending.verify", headers=admin_headers).json()[
+            "data"
+        ]["users"]
+        if u["email"] == "pending.verify@example.com"
+    )
+    verified = client.patch(
+        f"/api/v1/admin/users/{pending_id}/roles",
+        json={"roles": ["customer"], "is_active": True, "email_verified": True},
+        headers=admin_headers,
+    )
+    assert verified.status_code == 200 and verified.json()["data"]["user"]["email_verified"] is True
+    assert login(client, email="pending.verify@example.com", password=PASSWORD).status_code == 200
+
 
 def test_alembic_head_and_reference_seed_idempotency(db):
     from alembic.config import Config
