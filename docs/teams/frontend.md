@@ -1,6 +1,6 @@
-# شرح فريق Frontend — Sprint 2
+# شرح فريق Frontend — Sprint 2 وSprint 3
 
-الملف ده يشرح الشغل الموجود فعلًا في كود Foodify، وإزاي أجزاء الفرونت بتكمل رحلة المستخدم من مشاهدة المتاجر لحد متابعة الطلب. الشرح عربي مع الاحتفاظ بالمصطلحات التقنية بالإنجليزي عشان الفريق يقدر يناقش الكود ويشرحه. تفاصيل تنفيذ السيرفر موجودة في [شرح Backend](backend.md)، وتفاصيل الاتصال بين الطرفين في [شرح Integration](integration.md).
+الملف ده يشرح الشغل الموجود فعلًا في كود Foodify حتى **Sprint 3**، وإزاي أجزاء الفرونت تفصل بوابات العمل الخمس وتكمّل رحلة المستخدم من مشاهدة المتاجر لحد التوصيل. الشرح عربي مع الاحتفاظ بالمصطلحات التقنية بالإنجليزي عشان الفريق يقدر يناقش الكود ويشرحه. تفاصيل تنفيذ السيرفر موجودة في [شرح Backend](backend.md)، وتفاصيل الاتصال بين الطرفين في [شرح Integration](integration.md).
 
 ## 1. الفريق كان مسؤول عن إيه؟
 
@@ -275,7 +275,21 @@ Foodify ما فيهش حقول لتجميع PAN أو CVV أو OTP؛ إدخاله
 
 جزء من الاختبارات Unit لدالة معزولة، وجزء اختبار تعاون Modules. سكربت `test:unit` يشغل مجموعة Regression التي تضم أيضًا اختبارات Classes ببدائل لاعتماداتها، و`test:integration` يشغل تركيب Modules الحقيقي الموضح. دول اختبارات منطق الفرونت؛ مش `ReactDOM` rendering tests، ومش Browser E2E، ومش اتصال حقيقي بـMySQL أو Paymob أو حساب Google. Integration Tests الخاصة بالباك تشغل FastAPI مع قاعدة SQLite معزولة، ولها إعداد وشرح مستقل في [شرح Testing](testing.md).
 
-التشغيل من `front/`: `npm ci` لتثبيت نفس Lockfile، و`npm run test:unit` لمجموعة Regression، و`npm run test:integration` لمجموعة تركيب Modules، أو `npm test` لتشغيل الـ54 حالة معًا. `npm run typecheck` يفحص الأنواع، و`npm run build:production` يتأكد إن ملفات Production بتتبني. كل أمر يثبت حاجة مختلفة؛ نجاح Build وحده ما يثبتش صحة Login أو تحصيل الدفع. النتيجة المسجلة للتشغيل الفعلي موجودة في [شرح Testing](testing.md).
+التشغيل من `front/`: `npm ci` لتثبيت نفس Lockfile، و`npm run test:unit` لمجموعة Regression (**49** حالة)، و`npm run test:integration` لمجموعة تركيب Modules (**10** حالات)، أو `npm test` لتشغيل **78** حالة JS معًا (بإضافة اختبارات Proxy وPostman).
+
+## 19. إضافات Sprint 3 في الواجهة: البوابات الخمس المفصولة
+
+في Sprint 3 تم فصل الواجهات حسب الدور باستخدام `PortalLayout` وLazy Loading مع الحفاظ على Clean Architecture:
+
+| البوابة | المسار | الدور المخوّل | أهم المهام |
+|---|---|---|---|
+| العميل | `/` | `customer` | تصفح مطاعم بورسعيد وبورفؤاد، السلة المنفصلة، الدفع، التتبع، الإلغاء. |
+| الأدمن | `/admin` (`AdminPage`) | `admin` | إنشاء موظف مفعّل فورًا (`POST /admin/staff`)، البحث والتصفية، تعديل الأدوار وتفعيل/إيقاف الحساب (`PATCH /admin/users/{id}/roles`) عبر `AdminPage` و`PortalLayout variant="admin"`. |
+| المدير والعمليات | `/operations` و`/manager` | `operations_manager` و`restaurant_manager` | إضافة مطاعم وأصناف منيو، ربط الموظفين بقائمة منسدلة، وتعيين المحضّر والمندوب ومتابعة الطلبات. |
+| المطبخ / المحضّر | `/kitchen` (`KitchenPage`) | `order_preparer` | استقبال إشعارات الطلبات وتأكيد بدء التحضير والجاهزية (`ready_for_pickup`). |
+| المندوب | `/delivery` (`DeliveryPage`) | `courier` | عرض الطلبات المسندة مع بطاقة عنوان العميل الكامل ورقم الهاتف وتأكيد `picked_up` ثم `delivered`. |
+
+كما أضفنا جرس الإشعارات `NotificationBell` (تحديث كل 15 ثانية) ومساعد `loginDestination(user)` في `front/src/app/router/paths.ts` لتوجيه كل موظف لبوابته فور تسجيل الدخول دون المساس بتوجيه `accountDestination(user)` الخاص باستكمال بيانات العميل.
 
 ## 18. إعدادات التشغيل وحدود مسؤولية الفريق
 
