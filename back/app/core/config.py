@@ -16,7 +16,8 @@ from sqlalchemy.exc import ArgumentError
 
 from app.core.origins import canonical_origin
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_CANDIDATE_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = _CANDIDATE_ROOT if (_CANDIDATE_ROOT / "alembic.ini").exists() else Path.cwd()
 
 
 class Settings(BaseSettings):
