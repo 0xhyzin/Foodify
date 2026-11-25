@@ -1,5 +1,6 @@
 """Validated configuration loaded once for the selected deployment environment."""
 
+import logging
 import os
 from functools import lru_cache
 from ipaddress import ip_network
@@ -86,13 +87,16 @@ class Settings(BaseSettings):
     trusted_proxy_ips: list[str] = Field(default_factory=list)
     max_request_bytes: int = Field(default=1_048_576, ge=1024, le=10_485_760)
     smtp_host: str = "localhost"
-    email_provider: Literal["smtp", "brevo"] = "smtp"
+    email_provider: Literal["smtp", "brevo", "resend"] = "smtp"
     brevo_api_key: SecretStr | None = None
+    resend_api_key: SecretStr | None = None
     embedded_email_worker: bool = False
     smtp_port: int = Field(default=1025, ge=1, le=65535)
     smtp_username: str | None = None
     smtp_password: SecretStr | None = None
+    smtp_from_name: str = Field(default="Foodify", min_length=1, max_length=80)
     smtp_from_email: EmailStr = "noreply@foodify.example.com"
+    smtp_reply_to: EmailStr | None = None
     smtp_use_tls: bool = False
     smtp_use_ssl: bool = False
     smtp_timeout_seconds: int = Field(default=10, ge=1, le=60)
@@ -216,6 +220,25 @@ class Settings(BaseSettings):
             )
         if self.email_provider == "brevo" and not self.brevo_api_key:
             raise ValueError("EMAIL_PROVIDER=brevo requires BREVO_API_KEY.")
+        if self.email_provider == "resend" and not self.resend_api_key:
+            raise ValueError("EMAIL_PROVIDER=resend requires RESEND_API_KEY.")
+        sender_domain = str(self.smtp_from_email).rsplit("@", 1)[-1].lower()
+        free_webmail_domains = {"gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "live.com"}
+        host_lower = self.smtp_host.lower()
+        is_local_smtp = host_lower in {"localhost", "127.0.0.1", "mailpit"}
+        is_google_smtp = host_lower.endswith(("gmail.com", "googlemail.com"))
+        if (
+            self.email_provider == "smtp"
+            and sender_domain in free_webmail_domains
+            and not (is_local_smtp or is_google_smtp)
+        ):
+            logging.getLogger("foodify.config").warning(
+                "SMTP_FROM_EMAIL uses '%s' via third-party relay '%s'; recipient DMARC policies "
+                "usually reject or drop third-party relays spoofing free webmail domains. "
+                "Use SMTP_HOST=smtp.gmail.com with a Google App Password or verify your own custom domain.",
+                sender_domain,
+                self.smtp_host,
+            )
         if (
             self.frontend_proxy_secret
             and len(self.frontend_proxy_secret.get_secret_value().encode()) < 32
@@ -318,6 +341,7 @@ class Settings(BaseSettings):
                     self.oauth_google_client_secret,
                     self.oauth_facebook_client_secret,
                     self.brevo_api_key,
+                    self.resend_api_key,
                 )
                 if value
             )

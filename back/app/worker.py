@@ -44,6 +44,8 @@ def deliver_next_email() -> bool:
                     payload["purpose"],
                     payload["raw_token"],
                 )
+            else:
+                logger.warning("Email job expired before delivery job_id=%s", job.id)
             # Expired jobs are discarded; erase the secret after delivery/expiry.
             job.sent_at, job.encrypted_payload = utcnow(), ""
         except (InvalidToken, KeyError, ValueError, TypeError):
