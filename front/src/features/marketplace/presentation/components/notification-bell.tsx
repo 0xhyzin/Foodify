@@ -6,13 +6,20 @@ import type { AppNotification } from "../../domain/models";
 import { useNotifications } from "../hooks/use-notifications";
 import { notificationEventLabels } from "../status-labels";
 
-export type PortalContext = "customer" | "manager" | "kitchen" | "courier";
+export type PortalContext =
+  | "customer"
+  | "admin"
+  | "manager"
+  | "kitchen"
+  | "courier";
 
 function destinationFor(
   portalContext: PortalContext,
   notification: AppNotification,
 ): string {
   switch (portalContext) {
+    case "admin":
+      return "/admin";
     case "kitchen":
       return "/kitchen";
     case "courier":

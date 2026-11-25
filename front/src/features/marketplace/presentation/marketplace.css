@@ -1559,6 +1559,10 @@
   background: #2b2930;
   color: #fff;
 }
+.mp-portal-role-badge.is-admin {
+  background: linear-gradient(135deg, #b8192a, #7c1120);
+  border: 1px solid #f59e0b;
+}
 .mp-portal-role-badge.is-manager {
   background: var(--mp-red);
 }
@@ -2328,6 +2332,64 @@
 }
 @media (max-width: 480px) {
   .mp-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Admin Portal Extensions */
+.mp-admin-workspace {
+  display: grid;
+  gap: 24px;
+}
+.mp-admin-search {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.mp-admin-search .field {
+  flex: 1 1 260px;
+}
+.mp-admin-search .button {
+  width: auto;
+}
+.mp-admin-users-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.mp-admin-user-card {
+  border: 1px solid var(--mp-line);
+  border-radius: 14px;
+  padding: 18px;
+  background: var(--mp-soft);
+  display: grid;
+  gap: 12px;
+}
+.mp-admin-user-card h3 {
+  font-size: 16px;
+}
+.mp-role-checks {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mp-role-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--mp-line);
+  background: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+.mp-admin-rest-select {
+  margin-bottom: 0;
+}
+@media (max-width: 780px) {
+  .mp-admin-users-grid {
     grid-template-columns: 1fr;
   }
 }

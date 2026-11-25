@@ -6,8 +6,10 @@ import type {
   Order,
   PreparerOption,
   Product,
+  StaffAccount,
 } from "../domain/models";
 import type {
+  AdminUserDto,
   CartDto,
   CourierDto,
   MerchantDto,
@@ -150,5 +152,16 @@ export const notificationFromDto = (d: NotificationDto): AppNotification => ({
   message: d.message,
   deliveryStatus: d.delivery_status,
   readAt: d.read_at,
+  createdAt: d.created_at,
+});
+export const staffAccountFromDto = (d: AdminUserDto): StaffAccount => ({
+  id: d.id,
+  name: d.name,
+  email: d.email,
+  phone: d.phone,
+  isActive: d.is_active,
+  emailVerified: d.email_verified,
+  roles: d.roles,
+  managedRestaurantIds: d.managed_restaurant_ids ?? [],
   createdAt: d.created_at,
 });

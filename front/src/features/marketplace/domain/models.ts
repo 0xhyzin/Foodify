@@ -171,6 +171,37 @@ export interface UpdateMenuItemInput {
   artwork?: string;
   isAvailable?: boolean;
 }
+export type RoleCode =
+  | "customer"
+  | "courier"
+  | "order_preparer"
+  | "restaurant_manager"
+  | "operations_manager"
+  | "admin";
+export interface StaffAccount {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  isActive: boolean;
+  emailVerified: boolean;
+  roles: string[];
+  managedRestaurantIds: string[];
+  createdAt: string;
+}
+export interface CreateStaffInput {
+  name: string;
+  email: string;
+  password: string;
+  phone?: string | null;
+  roles: RoleCode[];
+  restaurantId?: string | null;
+}
+export interface UpdateUserRolesInput {
+  roles: RoleCode[];
+  isActive?: boolean;
+  restaurantId?: string | null;
+}
 export interface OrderEvent {
   status: string;
   createdAt: string;

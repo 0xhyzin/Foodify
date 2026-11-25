@@ -72,6 +72,9 @@ const messages: Record<string, string> = {
   staff_user_not_found: 'حساب الموظف مش موجود. تأكد من معرّف المستخدم الصحيح.',
   invalid_staff_role: 'المستخدم لازم يكون مفعل بدور مدير مطعم أو محضّر طلبات.',
   menu_item_not_found: 'صنف المنيو ده مش موجود أو لا يتبع المتجر المحدد.',
+  email_already_registered: 'البريد الإلكتروني مسجّل بالفعل لحساب آخر.',
+  cannot_demote_self: 'ماينفعش الأدمن يشيل صلاحية الأدمن عن نفسه أو يعطّل حسابه.',
+  role_not_found: 'أحد الأدوار المطلوبة غير موجود في النظام.',
 };
 
 function fieldName(value: unknown): string | null {

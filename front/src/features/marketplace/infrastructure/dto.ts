@@ -143,3 +143,14 @@ export interface UpdateDeliveryStatusResultDto {
   current_status: string;
   order: OrderDto;
 }
+export interface AdminUserDto {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  is_active: boolean;
+  email_verified: boolean;
+  roles: string[];
+  managed_restaurant_ids?: string[];
+  created_at: string;
+}

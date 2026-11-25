@@ -1,13 +1,16 @@
 import type {
   CreateMenuItemInput,
   CreateRestaurantInput,
+  CreateStaffInput,
   Merchant,
   Order,
   Page,
   PreparerOption,
   Product,
+  StaffAccount,
   UpdateMenuItemInput,
   UpdateRestaurantInput,
+  UpdateUserRolesInput,
 } from "./models";
 
 export interface OperationsRepository {
@@ -49,4 +52,18 @@ export interface OperationsRepository {
     status: "preparing" | "ready_for_pickup",
     note?: string,
   ): Promise<Order>;
+  listUsers(
+    options?: {
+      role?: string;
+      search?: string;
+      limit?: number;
+      offset?: number;
+    },
+    signal?: AbortSignal,
+  ): Promise<Page<StaffAccount>>;
+  createStaff(input: CreateStaffInput): Promise<StaffAccount>;
+  updateUserRoles(
+    userId: string,
+    input: UpdateUserRolesInput,
+  ): Promise<StaffAccount>;
 }
