@@ -13,10 +13,26 @@ export function redirectLocalDevelopmentOrigin(): boolean {
   return true;
 }
 
-/** Convert external action links to HashRouter routes before React reads them. */
+const DIRECT_PORTAL_PATHS = [
+  '/admin',
+  '/operations',
+  '/manager',
+  '/kitchen',
+  '/delivery',
+  '/login',
+  '/register',
+  '/orders',
+  '/notifications',
+];
+
+/** Convert external action and clean portal links to HashRouter routes before React reads them. */
 export function normalizeExternalLinks(): void {
   const physicalPath = window.location.pathname.replace(/\/$/, '') || '/';
   const fragment = window.location.hash.slice(1);
+  if (!fragment && DIRECT_PORTAL_PATHS.includes(physicalPath)) {
+    window.history.replaceState(null, document.title, `/#${physicalPath}${window.location.search}`);
+    return;
+  }
   if (!fragment || !['/verify-email', '/reset-password', '/oauth/callback'].includes(physicalPath)) return;
 
   const params = new URLSearchParams(fragment);

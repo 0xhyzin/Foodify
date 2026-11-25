@@ -139,6 +139,13 @@ test('normalization does not turn an unrelated page into an auth action', () => 
   modules.normalizeExternalLinks();
   assert.equal(state.normalized(), undefined);
 });
+for (const path of ['/admin', '/operations', '/manager', '/kitchen', '/delivery', '/login']) {
+  test(`direct portal URL ${path} normalizes cleanly to HashRouter route`, () => {
+    const state = locationFor(`https://foodify.example${path}`);
+    modules.normalizeExternalLinks();
+    assert.equal(state.normalized(), `/#${path}`);
+  });
+}
 
 test('parallel session restores share one cookie rotation', async () => {
   const response = deferred();
